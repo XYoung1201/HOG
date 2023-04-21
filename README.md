@@ -121,7 +121,9 @@ JFSM TEXT:Sample Text
 
   After defining these actions in the configuration file, HOG will execute the corresponding actions when the specified hotkey combinations are pressed. Keep in mind to avoid conflicts with existing shortcuts in the operating system or other applications. Always try to use unique hotkey combinations to prevent any issues.
 
-  Now you have a better understanding of the HOG (Hotkey Operated Gear) program, its features, and how to configure and use it. By leveraging custom hotkey combinations, you can streamline your daily tasks, improve your productivity, and make your workflow more efficient.# HOG（Hotkey Operated Gear）
+  Now you have a better understanding of the HOG (Hotkey Operated Gear) program, its features, and how to configure and use it. By leveraging custom hotkey combinations, you can streamline your daily tasks, improve your productivity, and make your workflow more efficient.
+
+# HOG（Hotkey Operated Gear）
 
 HOG（Hotkey Operated Gear）是一个用C++编写的程序，它可以与Windows剪贴板交互，让您定义自定义热键组合并分配各种操作。它在后台运行，监听特定的按键序列以执行相应的操作。以下是它的特点和优点：
 
