@@ -1,0 +1,6 @@
+.vs/
+**/x64/
+**/Debug/
+**/Release/
+*.sdf
+*.ipch
