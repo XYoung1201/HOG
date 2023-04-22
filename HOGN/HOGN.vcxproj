@@ -158,11 +158,13 @@
   <ItemGroup>
     <ClCompile Include="HOGN.cpp" />
     <ClCompile Include="qrcodegen.cpp" />
+    <ClCompile Include="winRel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HOGN.h" />
     <ClInclude Include="qrcodegen.hpp" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="winRel.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="HOGN.rc" />

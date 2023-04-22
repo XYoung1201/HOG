@@ -21,6 +21,9 @@
     <ClCompile Include="qrcodegen.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="winRel.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HOGN.h">
@@ -30,6 +33,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="qrcodegen.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="winRel.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

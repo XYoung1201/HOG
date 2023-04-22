@@ -11,15 +11,10 @@
 #include <direct.h>
 #include <chrono>
 #include <filesystem>
-#include <tchar.h>
 #include <map>
-#include "qrcodegen.hpp"
 using namespace std;
 using std::chrono::high_resolution_clock;
 using std::chrono::milliseconds;
-using std::uint8_t;
-using qrcodegen::QrCode;
-using qrcodegen::QrSegment;
 #pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" )
 
 typedef struct windowWithProcessAndHWND {
