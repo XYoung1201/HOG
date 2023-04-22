@@ -219,19 +219,6 @@ void ShowCustomWindow(const TCHAR* displayText)
 	}
 }
 
-
-static void printQr(const QrCode& qr) {
-	string a = "";
-	int border = 4;
-	for (int y = -border; y < qr.getSize() + border; y++) {
-		for (int x = -border; x < qr.getSize() + border; x++) {
-			a += (qr.getModule(x, y) ? "a" : "b");
-		}
-		a += "\n";
-	}
-	ShowCustomWindow(CString(a.c_str()));
-}
-
 HMODULE GetCurrentModule()
 {
 	HMODULE hModule = NULL;
@@ -449,7 +436,30 @@ void simulatePaste() {
 	keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0);
 }
 
-void openTar(string* tar) {
+static void printClipboard() {
+	const QrCode::Ecc errCorLvl = QrCode::Ecc::LOW;
+	try {
+		const QrCode qr = QrCode::encodeText(getClipboardText().c_str(), errCorLvl);
+		string a = "";
+		int border = 4;
+		for (int y = -border; y < qr.getSize() + border; y++) {
+			for (int x = -border; x < qr.getSize() + border; x++) {
+				a += (qr.getModule(x, y) ? "a" : "b");
+			}
+			a += "\n";
+		}
+		ShowCustomWindow(CString(a.c_str()));
+	}
+	catch (const qrcodegen::data_too_long& e) {
+		//std::cerr << "Error: Data too long - " << e.what() << std::endl;
+		MessageBox(NULL, _T("TEXT TOO LONG!"), _T("Error"), MB_ICONEXCLAMATION | MB_OK);
+	}
+	catch (...) {
+
+	}
+}
+
+void excuteTar(string* tar) {
 	string text = extractContent(*tar, "TEXT:");
 	if (text != "") {
 		std::map<UINT, HANDLE> savedClipboardData = saveClipboardData();
@@ -498,6 +508,27 @@ void openTar(string* tar) {
 	}
 }
 
+// 用于查找所有文件资源管理器窗口的回调函数
+BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
+{
+	// 获取窗口类名
+	const int bufferSize = 256;
+	char buffer[bufferSize];
+	GetClassNameA(hwnd, buffer, bufferSize);
+
+	// 如果找到的窗口是文件资源管理器窗口，关闭它
+	if (strcmp(buffer, "CabinetWClass") == 0 || strcmp(buffer, "ExploreWClass") == 0)
+	{
+		SendMessage(hwnd, WM_CLOSE, 0, 0);
+	}
+
+	return TRUE;
+}
+
+void closeAllDirectories() {
+	EnumWindows(EnumWindowsProc, 0);
+}
+
 void TouchBackspace(letter* ltr) {
 	for (int i = 0; i < ltr->num; i++) {
 		keybd_event(8, 0, 0, 0);
@@ -527,30 +558,20 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 						exit(0);
 					}
 				}
+				else if (*mark->a == "SET:CLOSEALLDIRECTORIES") {
+					closeAllDirectories();
+				}
 				else if (*mark->a == "SET:RELOAD") { 
 					clearMem(o);
 					readPara();
 					MessageBox(GetForegroundWindow(), CString("Reload Successfully!"), CString("Success"), MB_OK);
 				}
 				else if (*mark->a == "SET:CONFIG")
-					openTar(&para_path);
-				else if (*mark->a == "SET:QRCODE") {
-					mark = o;
-					const QrCode::Ecc errCorLvl = QrCode::Ecc::LOW;
-					try {
-						const QrCode qr = QrCode::encodeText(getClipboardText().c_str(), errCorLvl);
-						printQr(qr);
-					}
-					catch (const qrcodegen::data_too_long& e) {
-						//std::cerr << "Error: Data too long - " << e.what() << std::endl;
-						MessageBox(NULL, _T("TEXT TOO LONG!"), _T("Error"), MB_ICONEXCLAMATION | MB_OK);
-					}
-					catch (...) {
-
-					}
-				}
+					excuteTar(&para_path);
+				else if (*mark->a == "SET:QRCODE") 
+					printClipboard();
 				else if (!not_up[26])
-					openTar(mark->a);
+					excuteTar(mark->a);
 				mark = o;
 			}
 		}
@@ -573,11 +594,12 @@ void firstInitialJudge() {
 		_mkdir(para_dir.c_str());
 	if (_access(para_path.c_str(), 0) == -1) {
 		ofstream fout(para_path);
-		fout << "//系统级配置" << endl;
+		fout << "//内置功能：打开配置文件，重载配置文件，退出，显示粘贴板内容二维码，关闭所有文件夹" << endl;
+		fout << "JFCFG SET:CONFIG" << endl;
 		fout << "JFRLD SET:RELOAD" << endl;
 		fout << "JFQT SET:QUIT" << endl;
-		fout << "JFCFG SET:CONFIG" << endl;
 		fout << "JFQR SET:QRCODE" << endl;
+		fout << "JFCLSAD SET:CLOSEALLDIRECTORIES" << endl;
 		fout << "//系统路径" << endl << endl;
 		fout << "//专用文件夹" << endl << endl;
 		fout << "//系统应用" << endl << endl;
