@@ -128,11 +128,11 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
 		HFONT hOldFont = (HFONT)SelectObject(hdc, hFont);
 
 		// Set the inter-character spacing
-		int characterSpacing = -3.6;
-		SetTextCharacterExtra(hdc, characterSpacing);
+		//int characterSpacing = -5;
+		//SetTextCharacterExtra(hdc, characterSpacing);
 
 		// Use a custom function to draw the text with custom line spacing
-		int lineSpacing = -12;
+		int lineSpacing = -9;
 		DrawTextWithLineSpacing(memDC, displayText, -1, &rect, DT_CENTER | DT_WORDBREAK | DT_NOCLIP, lineSpacing);
 
 		// Restore the original font and delete the created font
@@ -198,7 +198,7 @@ void ShowCustomWindow(const TCHAR* displayText)
 	ReleaseDC(hWnd, hdc);
 
 	// Adjust the window size based on the text rectangle
-	RECT windowRect = { 0, 0,(textRect.right - textRect.left)/1.15, (textRect.bottom - textRect.top)/4};
+	RECT windowRect = { 0, 0,(textRect.right - textRect.left)/1.15, (textRect.bottom - textRect.top)/2.3};
 	AdjustWindowRectEx(&windowRect, GetWindowLong(hWnd, GWL_STYLE), FALSE, GetWindowLong(hWnd, GWL_EXSTYLE));
 	// 获取屏幕尺寸
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
@@ -535,6 +535,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 				else if (*mark->a == "SET:CONFIG")
 					openTar(&para_path);
 				else if (*mark->a == "SET:QRCODE") {
+					mark = o;
 					const QrCode::Ecc errCorLvl = QrCode::Ecc::LOW;
 					try {
 						const QrCode qr = QrCode::encodeText(getClipboardText().c_str(), errCorLvl);
@@ -547,7 +548,6 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 					catch (...) {
 
 					}
-					mark = o;
 				}
 				else if (!not_up[26])
 					openTar(mark->a);
