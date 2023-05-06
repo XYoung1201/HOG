@@ -1,3 +1,4 @@
+<iframe style="width:100%;height:auto;min-width:600px;min-height:400px;" src="https://star-history.com/embed?secret=Z2hwX0lhYlZqbTV6T0V6cUQ1REE1QWUzUUU4RkVtWVM5SjBUQ0ZEeA==#XYoung1201/HOG&Timeline" frameBorder="0"></iframe>
 # HOG (Hotkey Operated Gear)
 
 HOG (Hotkey Operated Gear) is a C++ based program that interacts with the Windows clipboard, allowing you to define custom key combinations and assign various actions to them. It runs in the background and listens for specific key sequences to execute corresponding actions. Here are its features and advantages:
