@@ -410,3 +410,126 @@ bool isActiveWindowExplorer() {
 		return false;
 	}
 }
+
+CComPtr<IAudioEndpointVolume> getAudioEndpointVolume() {
+	HRESULT hr;
+	CComPtr<IMMDeviceEnumerator> deviceEnumerator;
+	CComPtr<IMMDevice> defaultDevice;
+	CComPtr<IAudioEndpointVolume> endpointVolume;
+
+	hr = CoInitialize(NULL);
+	if (FAILED(hr)) {
+		std::cerr << "Error initializing COM library" << std::endl;
+		return nullptr;
+	}
+
+	hr = CoCreateInstance(
+		__uuidof(MMDeviceEnumerator),
+		NULL, CLSCTX_ALL,
+		__uuidof(IMMDeviceEnumerator),
+		(void**)&deviceEnumerator
+	);
+	if (FAILED(hr)) {
+		std::cerr << "Error creating device enumerator" << std::endl;
+		return nullptr;
+	}
+
+	hr = deviceEnumerator->GetDefaultAudioEndpoint(
+		eRender, eConsole, &defaultDevice
+	);
+	if (FAILED(hr)) {
+		std::cerr << "Error getting default audio endpoint" << std::endl;
+		return nullptr;
+	}
+
+	hr = defaultDevice->Activate(
+		__uuidof(IAudioEndpointVolume),
+		CLSCTX_ALL, NULL, (void**)&endpointVolume
+	);
+	if (FAILED(hr)) {
+		std::cerr << "Error activating audio endpoint volume" << std::endl;
+		return nullptr;
+	}
+
+	return endpointVolume;
+}
+
+void mute() {
+	CComPtr<IAudioEndpointVolume> endpointVolume = getAudioEndpointVolume();
+	if (!endpointVolume) {
+		return;
+	}
+
+	HRESULT hr = endpointVolume->SetMute(TRUE, NULL);
+	if (FAILED(hr)) {
+		std::cerr << "Error muting volume" << std::endl;
+	}
+}
+
+void unmute() {
+	CComPtr<IAudioEndpointVolume> endpointVolume = getAudioEndpointVolume();
+	if (!endpointVolume) {
+		return;
+	}
+
+	HRESULT hr = endpointVolume->SetMute(FALSE, NULL);
+	if (FAILED(hr)) {
+		std::cerr << "Error unmuting volume" << std::endl;
+	}
+}
+
+void setVolume(float volume) {
+	CComPtr<IAudioEndpointVolume> endpointVolume = getAudioEndpointVolume();
+	if (!endpointVolume) {
+		return;
+	}
+
+	if (volume < 0.0f) {
+		volume = 0.0f;
+	}
+	else if (volume > 1.0f) {
+		volume = 1.0f;
+	}
+
+	HRESULT hr = endpointVolume->SetMasterVolumeLevelScalar(volume, NULL);
+	if (FAILED(hr)) {
+		std::cerr << "Error setting volume level" << std::endl;
+	}
+}
+
+float getVolume() {
+	CComPtr<IAudioEndpointVolume> endpointVolume = getAudioEndpointVolume();
+	if (!endpointVolume) {
+		return -1.0;
+	}
+
+	float currentVolume = 0.0f;
+	HRESULT hr = endpointVolume->GetMasterVolumeLevelScalar(&currentVolume);
+	if (FAILED(hr)) {
+		std::cerr << "Error getting volume level" << std::endl;
+		return -1.0f;
+	}
+
+	return currentVolume;
+}
+
+void toggleMute() {
+	CComPtr<IAudioEndpointVolume> endpointVolume = getAudioEndpointVolume();
+	if (!endpointVolume) {
+		return;
+	}
+
+	BOOL isMuted;
+	HRESULT hr = endpointVolume->GetMute(&isMuted);
+	if (FAILED(hr)) {
+		std::cerr << "Error getting mute status" << std::endl;
+		return;
+	}
+
+	if (isMuted) {
+		unmute();
+	}
+	else {
+		mute();
+	}
+}

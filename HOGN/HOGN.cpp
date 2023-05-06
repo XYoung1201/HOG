@@ -102,8 +102,9 @@ void openTar(string target) {
 	SHELLEXECUTEINFO myProcess = { 0 };
 	myProcess.nShow = SW_SHOWMAXIMIZED;
 	myProcess.fMask = SEE_MASK_NOCLOSEPROCESS;// | SEE_MASK_NOASYNC | SEE_MASK_WAITFORINPUTIDLE;
-	myProcess.lpDirectory = CString("C:\\Users\\huang\\OneDrive");
-	myProcess.lpFile = CString(target.c_str());
+	myProcess.lpDirectory = _T("C:\\Users\\huang\\OneDrive");
+	CString temp = target.c_str();
+	myProcess.lpFile = temp;
 	myProcess.lpVerb = _T("open");
 	myProcess.cbSize = sizeof(myProcess);
 	ShellExecuteEx(&myProcess);
@@ -138,6 +139,10 @@ void runCommand(string command) {
 	}
 	if (command == "CONFIG") {
 		openTar(para_path);
+		return;
+	}
+	if (command == "MUTEREVERSE") {
+		toggleMute();
 		return;
 	}
 	if (command == "QRCODE")
@@ -214,7 +219,8 @@ void firstInitialJudge() {
 		fout << "JFRLD SET:RELOAD" << endl;
 		fout << "JFQT SET:QUIT" << endl;
 		fout << "JFQR SET:QRCODE" << endl;
-		fout << "JFCLSAD SET:CLOSEALLDIRECTORIES" << endl;
+		fout << "JFCAD SET:CLOSEALLDIRECTORIES" << endl;
+		fout << "JFMT SET:MUTEREVERSE" << endl;
 		fout << "//Link address: Target format is https://xxx\n//链接地址：目标格式为https://xxx" << endl << endl;
 		fout << "JFGH https://github.com" << endl;
 		fout << "//Text shorthand: Target format is TEXT:xxx\n//文本速写：目标格式为TEXT:xxx" << endl << endl;
@@ -234,6 +240,7 @@ int main() {
 	firstInitialJudge();
 	readPara();
 	lastTime = high_resolution_clock::now();
+	lastVolume = 30000;
 	myhook = SetWindowsHookEx(WH_KEYBOARD_LL, KeyboardProc, GetCurrentModule(), 0);
 	MSG msg;
 	while(GetMessageW(&msg, NULL, 0, 0) != -1);

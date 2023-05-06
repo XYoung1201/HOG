@@ -43,3 +43,4 @@ bool not_up[28] = { false };
 int char_down;
 high_resolution_clock::time_point lastTime	;
 HHOOK myhook;
+int lastVolume;

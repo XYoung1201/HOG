@@ -1,10 +1,16 @@
 #pragma once
-#include<windows.h>
+
 #include "qrcodegen.hpp"
 #include <tchar.h>
 #include <map>
 #include <string>
 #include <atlstr.h>
+#include <iostream>
+#include <Windows.h>
+#include <MMDeviceAPI.h>
+#include <EndpointVolume.h>
+#include <atlbase.h>
+
 
 using namespace std;
 using std::uint8_t;
@@ -26,3 +32,4 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam);
 void TouchBackspace(int letterNumber);
 void closeAllDirectories();
 bool isActiveWindowExplorer();
+void toggleMute();
