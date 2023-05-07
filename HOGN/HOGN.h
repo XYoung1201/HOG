@@ -41,6 +41,6 @@ string para_dir;
 struct letter *o, *mark;
 bool not_up[28] = { false };
 int char_down;
-high_resolution_clock::time_point lastTime	;
+high_resolution_clock::time_point lastTime;
+bool trayIconVisible;
 HHOOK myhook;
-int lastVolume;

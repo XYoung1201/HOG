@@ -1,6 +1,43 @@
 ﻿#include"HOGN.h"
 #include"winRel.h"
 
+bool hasPrefix(const std::string& str, const std::string& prefix) {
+	if (str.length() < prefix.length()) {
+		return false;
+	}
+	return str.substr(0, prefix.length()) == prefix;
+}
+
+std::string extractContent(const std::string& str, const std::string& prefix) {
+	if (hasPrefix(str, prefix)) {
+		return str.substr(prefix.length());
+	}
+	return "";
+}
+
+void loadSet(string set) {
+	set = extractContent(set, "SET:");
+	if (set == "")
+		return;
+	bool onoff;
+	set.substr(set.rfind(':') + 1) == "ON" ? onoff = true : onoff = false;
+	set = set.substr(0, set.find(':'));
+	if (set == "TRAYICONENABLE") {
+		if (trayIconVisible != onoff)
+			toggleTrayIconVisibility(trayIconVisible);
+		return;
+	}
+}
+
+void handleSet(string set) {
+	string instruct = set.substr(0, set.find(':'));
+	if (instruct == "TRAYICONENABLE") {
+		toggleTrayIconVisibility(trayIconVisible);
+		return;
+	}
+}
+
+
 void commandLoad(string word) {
 	string first, second;
 	first = word.substr(0, word.find(' '));
@@ -21,6 +58,7 @@ void commandLoad(string word) {
 	}
 	mark->a = new string;
 	*mark->a = second;
+	loadSet(second);
 	first.erase(std::remove(first.begin(), first.end(), '*'), first.end());
 	first.erase(std::remove(first.begin(), first.end(), '+'), first.end());
 	mark->num = first.length();
@@ -84,39 +122,6 @@ struct letter* getNextLetter(struct letter* lastCode, int code) {
 	return o;
 }
 
-bool hasPrefix(const std::string& str, const std::string& prefix) {
-	if (str.length() < prefix.length()) {
-		return false;
-	}
-	return str.substr(0, prefix.length()) == prefix;
-}
-
-std::string extractContent(const std::string& str, const std::string& prefix) {
-	if (hasPrefix(str, prefix)) {
-		return str.substr(prefix.length());
-	}
-	return "";
-}
-
-void openTar(string target) {
-	SHELLEXECUTEINFO myProcess = { 0 };
-	myProcess.nShow = SW_SHOWMAXIMIZED;
-	myProcess.fMask = SEE_MASK_NOCLOSEPROCESS;// | SEE_MASK_NOASYNC | SEE_MASK_WAITFORINPUTIDLE;
-	myProcess.lpDirectory = _T("C:\\Users\\huang\\OneDrive");
-	CString temp = target.c_str();
-	myProcess.lpFile = temp;
-	myProcess.lpVerb = _T("open");
-	myProcess.cbSize = sizeof(myProcess);
-	ShellExecuteEx(&myProcess);
-	EnumWindows(getRightHWND, (LPARAM)&myProcess);
-	if (myProcess.hwnd != 0)
-	{
-		SetForegroundWindow(myProcess.hwnd);
-		SetActiveWindow(myProcess.hwnd);
-	}
-	CloseHandle(myProcess.hProcess);
-}
-
 void runCommand(string command) {
 	if (command == "QUIT") {
 		int result = MessageBox(GetForegroundWindow(), CString("Do you want to quit HOGN?"), CString("Quit"), MB_OKCANCEL);
@@ -141,12 +146,27 @@ void runCommand(string command) {
 		openTar(para_path);
 		return;
 	}
-	if (command == "MUTEREVERSE") {
+	if (command == "MUTETOGGLE") {
 		toggleMute();
 		return;
 	}
-	if (command == "QRCODE")
+	if (command == "SHUTDOWN") {
+		shutdown();
+		return;
+	}
+	if (command == "REBOOT") {
+		reboot();
+		return;
+	}
+	if (command == "CANCELSHUTDOWNORREBOOT") {
+		cancelShutdown();
+		return;
+	}
+	if (command == "QRCODE") {
 		printClipboard();
+		return;
+	}
+	MessageBox(GetForegroundWindow(), CString("WRONG BUILD-IN FUNCTION!"), CString("ERROR"), MB_OKCANCEL);
 }
 
 void writeText(string text) {
@@ -159,14 +179,18 @@ void writeText(string text) {
 
 void excuteTar(string* tar) {
 	string text = extractContent(*tar, "TEXT:");
-	string cmd = extractContent(*tar, "SET:");
+	string cmd = extractContent(*tar, "CMD:");
+	string set = extractContent(*tar, "SET:");
+	string path = extractContent(*tar,"PATH:");
 	try {
 		if (text != "")
 			writeText(text);
 		else if (cmd != "")
 			runCommand(cmd);
-		else
-			openTar(*tar);
+		else if (set != "")
+			handleSet(set);
+		else if (path != "")
+			openTar(path);
 	}
 	catch (...) {
 		MessageBox(GetForegroundWindow(), CString("Configure Wrong!"), CString("ERROR"), MB_OK);
@@ -208,24 +232,22 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 }
 
 void firstInitialJudge() {
-	para_path = "C:\\ProgramData\\HOG\\HOG.conf";
-	para_dir = "C:\\ProgramData\\HOG";
 	if (_access(para_dir.c_str(), 0) == -1)
 		_mkdir(para_dir.c_str());
 	if (_access(para_path.c_str(), 0) == -1) {
 		ofstream fout(para_path);
 		fout << "//Built-in functions: Open configuration file, reload configuration file, exit, display QR code of clipboard content, close all folders\n//内置功能：打开配置文件，重载配置文件，退出，显示粘贴板内容二维码，关闭所有文件夹" << endl;
-		fout << "JFCFG SET:CONFIG" << endl;
-		fout << "JFRLD SET:RELOAD" << endl;
-		fout << "JFQT SET:QUIT" << endl;
-		fout << "JFQR SET:QRCODE" << endl;
-		fout << "JFCAD SET:CLOSEALLDIRECTORIES" << endl;
-		fout << "JFMT SET:MUTEREVERSE" << endl;
+		fout << "JFCFG CMD:CONFIG" << endl;
+		fout << "JFRLD CMD:RELOAD" << endl;
+		fout << "JFQT CMD:QUIT" << endl;
+		fout << "JFQR CMD:QRCODE" << endl;
+		fout << "JFCAD CMD:CLOSEALLDIRECTORIES" << endl;
+		fout << "JFMT CMD:MUTETOGGLE" << endl;
 		fout << "//Link address: Target format is https://xxx\n//链接地址：目标格式为https://xxx" << endl << endl;
 		fout << "JFGH https://github.com" << endl;
 		fout << "//Text shorthand: Target format is TEXT:xxx\n//文本速写：目标格式为TEXT:xxx" << endl << endl;
 		fout << "JFMAIL mygithubmail@github.com" << endl;
-		fout << "JFCLSAD SET:CLOSEALLDIRECTORIES" << endl;
+		fout << "JFCLSAD CMD:CLOSEALLDIRECTORIES" << endl;
 		fout << "// System path\n//系统路径" << endl << endl;
 		fout << "// Dedicated folder\n//专用文件夹" << endl << endl;
 		fout << "// System application\n//系统应用" << endl << endl;
@@ -237,11 +259,14 @@ void firstInitialJudge() {
 }
 
 int main() {
-	firstInitialJudge();
-	readPara();
+	trayIconVisible = true;
 	lastTime = high_resolution_clock::now();
-	lastVolume = 30000;
 	myhook = SetWindowsHookEx(WH_KEYBOARD_LL, KeyboardProc, GetCurrentModule(), 0);
 	MSG msg;
+	para_path = "C:\\ProgramData\\HOG\\HOG.conf";
+	para_dir = "C:\\ProgramData\\HOG";
+	firstInitialJudge();
+	windowCreate();
+	readPara();
 	while(GetMessageW(&msg, NULL, 0, 0) != -1);
 }

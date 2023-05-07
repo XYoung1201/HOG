@@ -1,4 +1,5 @@
 #include "winRel.h"
+NOTIFYICONDATA nid;
 
 void DrawTextWithLineSpacing(HDC hdc, const TCHAR* text, int count, RECT* rect, UINT format, int lineSpacing)
 {
@@ -531,5 +532,205 @@ void toggleMute() {
 	}
 	else {
 		mute();
+	}
+}
+
+void cancelShutdown() {
+	HANDLE hToken;
+	TOKEN_PRIVILEGES tkp;
+
+	// Get a token for this process
+	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken)) {
+		std::cerr << "OpenProcessToken failed" << std::endl;
+		return;
+	}
+
+	// Get the LUID for the shutdown privilege
+	LookupPrivilegeValue(NULL, SE_SHUTDOWN_NAME, &tkp.Privileges[0].Luid);
+
+	tkp.PrivilegeCount = 1;  // one privilege to set
+	tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+
+	// Get the shutdown privilege for this process
+	AdjustTokenPrivileges(hToken, FALSE, &tkp, 0, (PTOKEN_PRIVILEGES)NULL, 0);
+
+	if (GetLastError() != ERROR_SUCCESS) {
+		std::cerr << "AdjustTokenPrivileges failed" << std::endl;
+		return;
+	}
+
+	// Cancel the scheduled shutdown
+	if (!AbortSystemShutdown(NULL)) {
+		std::cerr << "AbortSystemShutdown failed" << std::endl;
+	}
+
+	// Disable the shutdown privilege
+	tkp.Privileges[0].Attributes = 0;
+	AdjustTokenPrivileges(hToken, FALSE, &tkp, 0, (PTOKEN_PRIVILEGES)NULL, 0);
+}
+
+void setShutdownPrivileges() {
+	HANDLE hToken;
+	TOKEN_PRIVILEGES tkp;
+
+	// Get a token for this process
+	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken)) {
+		std::cerr << "OpenProcessToken failed" << std::endl;
+		return;
+	}
+
+	// Get the LUID for the shutdown privilege
+	LookupPrivilegeValue(NULL, SE_SHUTDOWN_NAME, &tkp.Privileges[0].Luid);
+
+	tkp.PrivilegeCount = 1;  // one privilege to set
+	tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+
+	// Get the shutdown privilege for this process
+	AdjustTokenPrivileges(hToken, FALSE, &tkp, 0, (PTOKEN_PRIVILEGES)NULL, 0);
+
+	if (GetLastError() != ERROR_SUCCESS) {
+		std::cerr << "AdjustTokenPrivileges failed" << std::endl;
+		return;
+	}
+}
+
+void shutdown() {
+	setShutdownPrivileges();
+	if (!InitiateSystemShutdownEx(NULL, NULL, 20, TRUE, FALSE, SHTDN_REASON_MAJOR_OTHER | SHTDN_REASON_MINOR_OTHER)) {
+		std::cerr << "InitiateSystemShutdownEx failed for shutdown" << std::endl;
+	}
+}
+
+void reboot() {
+	setShutdownPrivileges();
+	if (!InitiateSystemShutdownEx(NULL, NULL, 20, TRUE, TRUE, SHTDN_REASON_MAJOR_OTHER | SHTDN_REASON_MINOR_OTHER)) {
+		std::cerr << "InitiateSystemShutdownEx failed for reboot" << std::endl;
+	}
+}
+
+void openTar(string target) {
+	SHELLEXECUTEINFO myProcess = { 0 };
+	myProcess.nShow = SW_SHOWMAXIMIZED;
+	myProcess.fMask = SEE_MASK_NOCLOSEPROCESS;// | SEE_MASK_NOASYNC | SEE_MASK_WAITFORINPUTIDLE;
+	myProcess.lpDirectory = _T("C:\\Users\\huang\\OneDrive");
+	CString temp = target.c_str();
+	myProcess.lpFile = temp;
+	myProcess.lpVerb = _T("open");
+	myProcess.cbSize = sizeof(myProcess);
+	ShellExecuteEx(&myProcess);
+	EnumWindows(getRightHWND, (LPARAM)&myProcess);
+	if (myProcess.hwnd != 0)
+	{
+		SetForegroundWindow(myProcess.hwnd);
+		SetActiveWindow(myProcess.hwnd);
+	}
+	CloseHandle(myProcess.hProcess);
+}
+
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	switch (msg) {
+	case WM_CREATE: {
+		ZeroMemory(&nid, sizeof(NOTIFYICONDATA));
+		nid.cbSize = sizeof(NOTIFYICONDATA);
+		nid.hWnd = hwnd;
+		nid.uID = 14735;
+		nid.uVersion = NOTIFYICON_VERSION;
+		nid.uCallbackMessage = WM_TRAYICON;
+		nid.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON1));
+		wcscpy_s(nid.szTip, _countof(nid.szTip), L"HOG"); // Use wcscpy_s to copy the wide string
+		nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;
+		Shell_NotifyIcon(NIM_ADD, &nid);
+	}
+				  break;
+	case WM_COMMAND:
+		switch (LOWORD(wParam)) {
+		case ID_TRAY_EXIT:
+			exit(0);
+			break;
+		case ID_TRAY_RELOAD:
+			
+			break;
+		}
+		break;
+	case WM_TRAYICON:
+		switch (lParam) {
+		case WM_LBUTTONUP:
+			openTar("C:\\ProgramData\\HOG\\HOG.conf");
+			break;
+		case WM_RBUTTONUP: {
+			// Create a popup menu with multiple menu items
+			HMENU hMenu = CreatePopupMenu();
+			//AppendMenu(hMenu, MF_STRING, ID_TRAY_RELOAD, TEXT("Reload"));
+			//AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
+			AppendMenu(hMenu, MF_STRING, ID_TRAY_EXIT, TEXT("Exit"));
+
+			// Display the menu
+			POINT pt;
+			GetCursorPos(&pt);
+			SetForegroundWindow(hwnd);
+
+			// Add TPM_RETURNCMD to the TrackPopupMenu flags
+			UINT selectedMenu = TrackPopupMenu(hMenu, TPM_BOTTOMALIGN | TPM_LEFTALIGN | TPM_RETURNCMD, pt.x, pt.y, 0, hwnd, NULL);
+
+			// If a menu item was selected, post the WM_COMMAND message with the selected command ID
+			if (selectedMenu != 0) {
+				SendMessage(hwnd, WM_COMMAND, MAKEWPARAM(selectedMenu, 0), 0);
+			}
+
+			SendMessage(hwnd, WM_NULL, 0, 0);
+			DestroyMenu(hMenu);
+		}
+						   break;
+		}
+		break;
+	case WM_DESTROY:
+		Shell_NotifyIcon(NIM_DELETE, &nid);
+		PostQuitMessage(0);
+		break;
+	default:
+		return DefWindowProc(hwnd, msg, wParam, lParam);
+	}
+	return 0;
+}
+
+void toggleTrayIconVisibility(bool& trayIconVisible) {
+	if (trayIconVisible) {
+		Shell_NotifyIcon(NIM_DELETE, &nid);
+	}
+	else {
+		Shell_NotifyIcon(NIM_ADD, &nid);
+	}
+	trayIconVisible = !trayIconVisible;
+}
+
+void windowCreate() {
+	WNDCLASSEX wc;
+	HWND hwnd;
+	MSG msg;
+
+	// Register the window class
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.style = 0;
+	wc.lpfnWndProc = WndProc;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = GetModuleHandle(NULL);
+	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	wc.lpszMenuName = NULL;
+	wc.lpszClassName = CString("hiddenWindowClass");
+	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+
+	if (!RegisterClassEx(&wc)) {
+		MessageBox(NULL, CString("Window Registration Failed!"), CString("Error!"), MB_ICONEXCLAMATION | MB_OK);
+	}
+
+	// Create the hidden window
+	hwnd = CreateWindowEx(0, wc.lpszClassName, NULL, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, wc.hInstance, NULL);
+
+	if (hwnd == NULL) {
+		MessageBox(NULL, CString("Window Creation Failed!"), CString("Error!"), MB_ICONEXCLAMATION | MB_OK);
 	}
 }
