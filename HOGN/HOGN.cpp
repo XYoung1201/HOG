@@ -236,23 +236,7 @@ void firstInitialJudge() {
 		_mkdir(para_dir.c_str());
 	if (_access(para_path.c_str(), 0) == -1) {
 		ofstream fout(para_path);
-		fout << "//Built-in functions: Open configuration file, reload configuration file, exit, display QR code of clipboard content, close all folders\n//内置功能：打开配置文件，重载配置文件，退出，显示粘贴板内容二维码，关闭所有文件夹" << endl;
-		fout << "JFCFG CMD:CONFIG" << endl;
-		fout << "JFRLD CMD:RELOAD" << endl;
-		fout << "JFQT CMD:QUIT" << endl;
-		fout << "JFQR CMD:QRCODE" << endl;
-		fout << "JFCAD CMD:CLOSEALLDIRECTORIES" << endl;
-		fout << "JFMT CMD:MUTETOGGLE" << endl;
-		fout << "//Link address: Target format is https://xxx\n//链接地址：目标格式为https://xxx" << endl << endl;
-		fout << "JFGH https://github.com" << endl;
-		fout << "//Text shorthand: Target format is TEXT:xxx\n//文本速写：目标格式为TEXT:xxx" << endl << endl;
-		fout << "JFMAIL mygithubmail@github.com" << endl;
-		fout << "JFCLSAD CMD:CLOSEALLDIRECTORIES" << endl;
-		fout << "// System path\n//系统路径" << endl << endl;
-		fout << "// Dedicated folder\n//专用文件夹" << endl << endl;
-		fout << "// System application\n//系统应用" << endl << endl;
-		fout << "// Application\n//应用程序" << endl << endl;
-		fout << "// Logic script\n//逻辑脚本" << endl << endl;
+		fout << config_text;
 		fout.close();
 		ShellExecute(NULL, CString("open"), CString(para_path.c_str()), NULL, NULL, SW_SHOW);
 	}
