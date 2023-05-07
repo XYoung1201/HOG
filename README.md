@@ -78,6 +78,8 @@ JFRLD SET:RELOAD
 JFQT SET:QUIT
 JFCFG SET:CONFIG
 JFQR SET:QRCODE
+JFCAD SET:CLOSEALLDIRECTORIES
+JFMT SET:MUTEREVERSE
 
 // System paths
 JFPF C:\Program Files
@@ -108,6 +110,10 @@ JFSM TEXT:Sample Text
 - `JFCFG SET:CONFIG`: When pressing `J`, `F`, `C`, `F`, `G` keys, open the configuration file.
 
 - `JFQR SET:QRCODE`: When pressing `J`, `F`, `Q`, `R` keys, convert the text in the clipboard to a QR code and display it.
+
+- `JFCAD SET:CLOSEALLDIRECTORIES`: When pressing `J`, `F`, `C`, `A`, `D` keys, close all opening directories.
+
+- `JFMT SET:MUTEREVERSE`: When pressing `J`, `F`, `M`, `T` keys, change the system's mute state.
 
 - `JFPF C:\Program Files`: When pressing `J`, `F`, `P`, `F` keys, open the `C:\Program Files` folder.
 
@@ -203,6 +209,8 @@ JFRLD SET:RELOAD
 JFQT SET:QUIT
 JFCFG SET:CONFIG
 JFQR SET:QRCODE
+JFCAD SET:CLOSEALLDIRECTORIES
+JFMT SET:MUTEREVERSE
 
 // 系统路径
 JFPF C:\Program Files
@@ -228,6 +236,8 @@ JFSM TEXT:Sample Text
 
 - `JFRLD SET:RELOAD`：当按下`J`, `F`, `R`, `L`, `D`键时，重新加载配置文件。
 - `JFQT SET:QUIT`：当按下`J`, `F`, `Q`, `T`键时，退出程序。
+- `JFCAD SET:CLOSEALLDIRECTORIES`: 当按下`J`, `F`, `C`, `A`, `D`键时, 关闭所有打开的文件夹。
+- `JFMT SET:MUTEREVERSE`: 当按下`J`, `F`, `M`, `T`键时, 反转静音或者非静音状态。
 - `JFCFG SET:CONFIG`：当按下`J`, `F`, `C`, `F`, `G`键时，打开配置文件。
 - `JFQR SET:QRCODE`：当按下`J`, `F`, `Q`, `R`键时，将剪贴板中的文本转换为QR码并显示。
 - `JFPF C:\Program Files`：当按下`J`, `F`, `P`, `F`键时，打开`C:\Program Files`文件夹。
