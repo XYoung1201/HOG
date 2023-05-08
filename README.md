@@ -3,6 +3,8 @@
 [![Star History Chart](https://api.star-history.com/svg?repos=XYoung1201/HOG&type=Timeline)](https://star-history.com/#XYoung1201/HOG&Timeline)
 
 # HOG (Hotkey Operated Gear)
+The Chinese version of the README instructions is located after the English version of the README.
+中文版README说明在英文版README后面
 
 HOG (Hotkey Operated Gear) is a C++ based program that interacts with the Windows clipboard, allowing you to define custom key combinations and assign various actions to them. It runs in the background and listens for specific key sequences to execute corresponding actions. Here are its features and advantages:
 
@@ -74,12 +76,12 @@ Here's a simple configuration file example:
 
 ```
 // System-level configuration
-JFRLD SET:RELOAD
-JFQT SET:QUIT
-JFCFG SET:CONFIG
-JFQR SET:QRCODE
-JFCAD SET:CLOSEALLDIRECTORIES
-JFMT SET:MUTEREVERSE
+JFRLD CMD:RELOAD
+JFQT CMD:QUIT
+JFCFG CMD:CONFIG
+JFQR CMD:QRCODE
+JFCAD CMD:CLOSEALLDIRECTORIES
+JFMT CMD:MUTEREVERSE
 
 // System paths
 JFPF C:\Program Files
@@ -103,17 +105,17 @@ JFGH https://github.com
 JFSM TEXT:Sample Text
 ```
 
-- `JFRLD SET:RELOAD`: When pressing `J`, `F`, `R`, `L`, `D` keys, reload the configuration file.
+- `JFRLD CMD:RELOAD`: When pressing `J`, `F`, `R`, `L`, `D` keys, reload the configuration file.
 
-- `JFQT SET:QUIT`: When pressing `J`, `F`, `Q`, `T` keys, exit the program.
+- `JFQT CMD:QUIT`: When pressing `J`, `F`, `Q`, `T` keys, exit the program.
 
-- `JFCFG SET:CONFIG`: When pressing `J`, `F`, `C`, `F`, `G` keys, open the configuration file.
+- `JFCFG CMD:CONFIG`: When pressing `J`, `F`, `C`, `F`, `G` keys, open the configuration file.
 
-- `JFQR SET:QRCODE`: When pressing `J`, `F`, `Q`, `R` keys, convert the text in the clipboard to a QR code and display it.
+- `JFQR CMD:QRCODE`: When pressing `J`, `F`, `Q`, `R` keys, convert the text in the clipboard to a QR code and display it.
 
-- `JFCAD SET:CLOSEALLDIRECTORIES`: When pressing `J`, `F`, `C`, `A`, `D` keys, close all opening directories.
+- `JFCAD CMD:CLOSEALLDIRECTORIES`: When pressing `J`, `F`, `C`, `A`, `D` keys, close all opening directories.
 
-- `JFMT SET:MUTEREVERSE`: When pressing `J`, `F`, `M`, `T` keys, change the system's mute state.
+- `JFMT CMD:MUTEREVERSE`: When pressing `J`, `F`, `M`, `T` keys, change the system's mute state.
 
 - `JFPF C:\Program Files`: When pressing `J`, `F`, `P`, `F` keys, open the `C:\Program Files` folder.
 
@@ -205,12 +207,12 @@ HOG（Hotkey Operated Gear）是一个用C++编写的程序，它可以与Window
 
 ```
 // 系统级配置
-JFRLD SET:RELOAD
-JFQT SET:QUIT
-JFCFG SET:CONFIG
-JFQR SET:QRCODE
-JFCAD SET:CLOSEALLDIRECTORIES
-JFMT SET:MUTEREVERSE
+JFRLD CMD:RELOAD
+JFQT CMD:QUIT
+JFCFG CMD:CONFIG
+JFQR CMD:QRCODE
+JFCAD CMD:CLOSEALLDIRECTORIES
+JFMT CMD:MUTEREVERSE
 
 // 系统路径
 JFPF C:\Program Files
@@ -234,12 +236,12 @@ JFGH https://github.com
 JFSM TEXT:Sample Text
 ```
 
-- `JFRLD SET:RELOAD`：当按下`J`, `F`, `R`, `L`, `D`键时，重新加载配置文件。
-- `JFQT SET:QUIT`：当按下`J`, `F`, `Q`, `T`键时，退出程序。
-- `JFCAD SET:CLOSEALLDIRECTORIES`: 当按下`J`, `F`, `C`, `A`, `D`键时, 关闭所有打开的文件夹。
-- `JFMT SET:MUTEREVERSE`: 当按下`J`, `F`, `M`, `T`键时, 反转静音或者非静音状态。
-- `JFCFG SET:CONFIG`：当按下`J`, `F`, `C`, `F`, `G`键时，打开配置文件。
-- `JFQR SET:QRCODE`：当按下`J`, `F`, `Q`, `R`键时，将剪贴板中的文本转换为QR码并显示。
+- `JFRLD CMD:RELOAD`：当按下`J`, `F`, `R`, `L`, `D`键时，重新加载配置文件。
+- `JFQT CMD:QUIT`：当按下`J`, `F`, `Q`, `T`键时，退出程序。
+- `JFCAD CMD:CLOSEALLDIRECTORIES`: 当按下`J`, `F`, `C`, `A`, `D`键时, 关闭所有打开的文件夹。
+- `JFMT CMD:MUTEREVERSE`: 当按下`J`, `F`, `M`, `T`键时, 反转静音或者非静音状态。
+- `JFCFG CMD:CONFIG`：当按下`J`, `F`, `C`, `F`, `G`键时，打开配置文件。
+- `JFQR CMD:QRCODE`：当按下`J`, `F`, `Q`, `R`键时，将剪贴板中的文本转换为QR码并显示。
 - `JFPF C:\Program Files`：当按下`J`, `F`, `P`, `F`键时，打开`C:\Program Files`文件夹。
 - `JFDW C:\Users\YourUsername\Documents\Work`：当按下`J`, `F`, `D`, `W`键时，打开`C:\Users\YourUsername\Documents\Work`文件夹。
 - `JFNP notepad.exe`：当按下`J`, `F`, `N`, `P`键时，启动记事本程序。
