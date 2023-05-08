@@ -30,7 +30,8 @@
 #include <UIAutomation.h>
 #define WM_TRAYICON (WM_USER + 1)
 #define WM_CONFIGMESSAGE (WM_USER + 2)
-#define IDI_ICON1 101
+#define IDI_ICON 101
+#define IDI_ICON_GRAY 108
 #define ID_TRAY_EXIT 9001
 #define ID_TRAY_RELOAD 9002
 #define ID_TRAY_CONFIG 9003
@@ -135,3 +136,4 @@ std::string config_text = "//配置系统托盘图标显示\n"
 
 void readPara();
 void runCommand(string set);
+void toggleTrayIcon();

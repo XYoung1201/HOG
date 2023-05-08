@@ -171,6 +171,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="hands.ico" />
+    <Image Include="hand_gray.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

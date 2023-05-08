@@ -2,7 +2,8 @@
 // Microsoft Visual C++ 生成的包含文件。
 // 供 HOGN.rc 使用
 //
-#define IDI_ICON1                       101
+#define IDI_ICON                        101
+#define IDI_ICON_GRAY                   108
 
 // Next default values for new objects
 // 

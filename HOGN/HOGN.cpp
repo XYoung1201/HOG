@@ -1,4 +1,5 @@
 ﻿#include"HOGN.h"
+#include "resource.h"
 
 void DrawTextWithLineSpacing(HDC hdc, const TCHAR* text, int count, RECT* rect, UINT format, int lineSpacing)
 {
@@ -632,7 +633,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		nid.uID = 14735;
 		nid.uVersion = NOTIFYICON_VERSION;
 		nid.uCallbackMessage = WM_TRAYICON;
-		nid.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON1));
+		nid.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON));
 		wcscpy_s(nid.szTip, _countof(nid.szTip), L"HOG"); // Use wcscpy_s to copy the wide string
 		nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;
 		Shell_NotifyIcon(NIM_ADD, &nid);
@@ -650,10 +651,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			runCommand("CONFIG");
 			break;
 		case ID_TRAY_PAUSE:
-			listening = false;
+			if (listening != false)
+				toggleTrayIcon();
 			break;
 		case ID_TRAY_START:
-			listening = true;
+			if (listening != true)
+				toggleTrayIcon();
 			break;
 		case ID_TRAY_QRCODE:
 			runCommand("QRCODE");
@@ -671,8 +674,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		case WM_RBUTTONUP: {
 			// Create a popup menu with multiple menu items
 			HMENU hMenu = CreatePopupMenu();
-			AppendMenu(hMenu, MF_STRING, ID_TRAY_START, TEXT("Start Listening"));
-			AppendMenu(hMenu, MF_STRING, ID_TRAY_PAUSE, TEXT("Pause Listening"));
+			if(listening)
+				AppendMenu(hMenu, MF_STRING, ID_TRAY_PAUSE, TEXT("Stop Listening"));
+			else
+				AppendMenu(hMenu, MF_STRING, ID_TRAY_START, TEXT("Start Listening"));
 			AppendMenu(hMenu, MF_STRING, ID_TRAY_CONFIG, TEXT("Edit Config"));
 			AppendMenu(hMenu, MF_STRING, ID_TRAY_RELOAD, TEXT("Reload Config"));
 			AppendMenu(hMenu, MF_STRING, ID_TRAY_QRCODE, TEXT("Show Clipboard QRcode"));
@@ -709,7 +714,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	return 0;
 }
 
-void toggleTrayIconVisibility(bool& trayIconVisible) {
+void toggleTrayIconVisibility() {
 	if (trayIconVisible) {
 		Shell_NotifyIcon(NIM_DELETE, &nid);
 	}
@@ -717,6 +722,18 @@ void toggleTrayIconVisibility(bool& trayIconVisible) {
 		Shell_NotifyIcon(NIM_ADD, &nid);
 	}
 	trayIconVisible = !trayIconVisible;
+}
+
+void toggleTrayIcon() {
+	listening = !listening;
+	if (listening) {
+		nid.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON));
+		Shell_NotifyIcon(NIM_MODIFY, &nid);
+	}
+	else {
+		nid.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON_GRAY));
+		Shell_NotifyIcon(NIM_MODIFY, &nid);
+	}
 }
 
 void windowCreate() {
@@ -773,7 +790,7 @@ void loadSet(string set) {
 	set = set.substr(0, set.find(':'));
 	if (set == "TRAYICONENABLE") {
 		if (trayIconVisible != onoff)
-			toggleTrayIconVisibility(trayIconVisible);
+			toggleTrayIconVisibility();
 		return;
 	}
 }
@@ -781,7 +798,7 @@ void loadSet(string set) {
 void handleSet(string set) {
 	string instruct = set.substr(0, set.find(':'));
 	if (instruct == "TRAYICONENABLE") {
-		toggleTrayIconVisibility(trayIconVisible);
+		toggleTrayIconVisibility();
 		return;
 	}
 }

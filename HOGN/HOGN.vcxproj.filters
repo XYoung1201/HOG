@@ -42,5 +42,8 @@
     <Image Include="hands.ico">
       <Filter>资源文件</Filter>
     </Image>
+    <Image Include="hand_gray.ico">
+      <Filter>资源文件</Filter>
+    </Image>
   </ItemGroup>
 </Project>
