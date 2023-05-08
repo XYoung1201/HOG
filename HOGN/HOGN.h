@@ -12,6 +12,38 @@
 #include <chrono>
 #include <filesystem>
 #include <map>
+
+#include "qrcodegen.hpp"
+#include <tchar.h>
+#include <map>
+#include <string>
+#include <atlstr.h>
+#include <iostream>
+#include <Windows.h>
+#include <MMDeviceAPI.h>
+#include <EndpointVolume.h>
+#include <atlbase.h>
+#include <wchar.h>
+#include <ShlObj.h>
+#include <ShObjIdl.h>
+#include <atlcom.h>
+#include <UIAutomation.h>
+#define WM_TRAYICON (WM_USER + 1)
+#define WM_CONFIGMESSAGE (WM_USER + 2)
+#define IDI_ICON1 101
+#define ID_TRAY_EXIT 9001
+#define ID_TRAY_RELOAD 9002
+#define ID_TRAY_CONFIG 9003
+#define ID_TRAY_PAUSE 9004
+#define ID_TRAY_START 9005
+#define ID_TRAY_QRCODE 9006
+#define ID_TRAY_CLOSEDIRECTORIES 9007
+
+
+using namespace std;
+using std::uint8_t;
+using qrcodegen::QrCode;
+using qrcodegen::QrSegment;
 using namespace std;
 using std::chrono::high_resolution_clock;
 using std::chrono::milliseconds;
@@ -39,11 +71,13 @@ typedef struct letter {
 string para_path;
 string para_dir;
 struct letter *o, *mark;
-bool not_up[28] = { false };
+bool not_up[28];
 int char_down;
 high_resolution_clock::time_point lastTime;
 bool trayIconVisible;
 HHOOK myhook;
+NOTIFYICONDATA nid;
+bool listening;
 
 std::string config_text = "//配置系统托盘图标显示\n"
 "JFAI SET:TRAYICONENABLE:ON\n"
@@ -60,6 +94,8 @@ std::string config_text = "//配置系统托盘图标显示\n"
 "JFRB CMD:REBOOT\n"
 "JFCLSD CMD:CANCELSHUTDOWNORREBOOT\n"
 "JFCLRB CMD:CANCELSHUTDOWNORREBOOT\n"
+"JFOCMD CMD:OPENCMDINCURRENTPATH\n"
+"JFOSWT CMD:ONOFFHOGTOGGLE\n"
 "\n"
 "//系统路径\n"
 "JFETC PATH:C:\\WINDOWS\\SYSTEM32\\DRIVERS\\ETC\n"
@@ -96,3 +132,6 @@ std::string config_text = "//配置系统托盘图标显示\n"
 "\n"
 "//文本输入\n"
 "*JFYX TEXT:aaaa@gmail.com";
+
+void readPara();
+void runCommand(string set);
