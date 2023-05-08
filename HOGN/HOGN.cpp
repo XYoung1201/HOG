@@ -970,7 +970,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 			keyStateChange(press->vkCode, false);
 			if (mark->a != NULL)
 			{
-				if(!isActiveWindowExplorer())
+				if(!isActiveWindowExplorer() && listening)
 					TouchBackspace(mark->num);
 				if (!not_up[26] && !not_up[27])
 					excuteTar(mark->a);
