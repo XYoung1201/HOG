@@ -72,7 +72,7 @@ The configuration file can be edited using any text editor (such as Notepad). Fo
 
 ## Configuration file example
 
-Here's a simple configuration file example:
+Here's a simple configuration file example: (For a detailed example of a configuration file, please refer to the HOG.example.conf file in the project, which includes all the built-in functions and their descriptions.)
 
 ```
 // System-level configuration
@@ -203,7 +203,7 @@ HOG（Hotkey Operated Gear）是一个用C++编写的程序，它可以与Window
 
 ## 配置文件示例
 
-以下是一个简单的配置文件示例：
+以下是一个简单的配置文件示例：（详细的配置文件范例可参考项目内的HOG.example.conf文件，包括所有的内置功能及其说明）
 
 ```
 // 系统级配置

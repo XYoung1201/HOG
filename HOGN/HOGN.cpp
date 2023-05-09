@@ -943,6 +943,11 @@ void runCommand(string command) {
 		listening = !listening;
 		return;
 	}
+	if (command == "GOOGLESEARCH") {
+		openTar(string("https://google.com/search?q=") + getClipboardText());
+		return;
+	}
+
 	MessageBox(GetForegroundWindow(), CString("WRONG BUILD-IN FUNCTION!"), CString("ERROR"), MB_OKCANCEL);
 }
 
@@ -1021,6 +1026,12 @@ void firstInitialJudge() {
 }
 
 int main() {
+	HANDLE hMutex = CreateMutex(NULL, TRUE, L"Global\\HOGNMutex");
+
+	if (GetLastError() == ERROR_ALREADY_EXISTS) {
+		MessageBox(GetForegroundWindow(), _T("An instance of this application is already running!"), _T("Warning"), MB_OK);
+		return -1;
+	}
 	trayIconVisible = true;
 	listening = true;
 	lastTime = high_resolution_clock::now();
