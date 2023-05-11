@@ -530,9 +530,11 @@ void toggleMute() {
 
 	if (isMuted) {
 		unmute();
+		MessageBox(GetForegroundWindow(), L"Sound on!", CString("Prompt"), MB_OK);
 	}
 	else {
 		mute();
+		MessageBox(GetForegroundWindow(), L"Sound off!", CString("Prompt"), MB_OK);
 	}
 }
 
