@@ -341,6 +341,26 @@ void simulatePaste() {
 	keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0);
 }
 
+void simulatePush(char c) {
+    INPUT input[2];
+    ZeroMemory(input, sizeof(input));
+
+    input[0].type = INPUT_KEYBOARD;
+    input[0].ki.wVk = VkKeyScan(c);  
+
+    input[1].type = INPUT_KEYBOARD;
+    input[1].ki.wVk = VkKeyScan(c);
+    input[1].ki.dwFlags = KEYEVENTF_KEYUP;  
+
+    SendInput(2, input, sizeof(INPUT));
+}
+
+void simulateWrite(string str) {
+	for (char i : str) {
+		simulatePush(i);
+	}
+}
+
 void printClipboard() {
 	const QrCode::Ecc errCorLvl = QrCode::Ecc::LOW;
 	try {
@@ -607,12 +627,38 @@ void reboot() {
 	InitiateSystemShutdownEx(NULL, NULL, 20, TRUE, TRUE, SHTDN_REASON_MAJOR_OTHER | SHTDN_REASON_MINOR_OTHER);
 }
 
+std::string replaceEnvironmentVariables(const std::string& input) {
+	std::string result = input;
+	std::regex env_var_pattern(R"((%\w+%))");  // 正则表达式，匹配形如%VAR%的环境变量
+
+	std::smatch match;
+	while (std::regex_search(result, match, env_var_pattern)) {
+		if (match.size() > 1) {
+			std::string var = match[1].str();
+			std::string var_name = var.substr(1, var.size() - 2);  // 移除两侧的'%'
+
+			const char* var_value = std::getenv(var_name.c_str());
+			if (var_value) {
+				result.replace(match.position(), var.length(), var_value);  // 用环境变量的值替换
+			}
+			else {
+				result.replace(match.position(), var.length(), "");  // 如果环境变量不存在，替换为空字符串
+			}
+		}
+		else {
+			break;
+		}
+	}
+
+	return result;
+}
+
 void openTar(string target) {
 	SHELLEXECUTEINFO myProcess = { 0 };
 	myProcess.nShow = SW_SHOWMAXIMIZED;
 	myProcess.fMask = SEE_MASK_NOCLOSEPROCESS;// | SEE_MASK_NOASYNC | SEE_MASK_WAITFORINPUTIDLE;
-	myProcess.lpDirectory = _T("C:\\Users\\huang\\OneDrive");
-	CString temp = target.c_str();
+	myProcess.lpDirectory = _T("C:\\");
+	CString temp = replaceEnvironmentVariables(target).c_str();
 	myProcess.lpFile = temp;
 	myProcess.lpVerb = _T("open");
 	myProcess.cbSize = sizeof(myProcess);
@@ -940,13 +986,19 @@ void runCommand(string command) {
 			MessageBox(GetForegroundWindow(), L"", CString("Success"), MB_OK);
 			return;
 		}
+		if (command == "GOOGLESEARCH") {
+			openTar(string("https://google.com/search?q=") + getClipboardText());
+			return;
+		}
+		if (command == "CLOSETHISWINDOW") {
+			HWND hwnd = GetForegroundWindow();
+			if (hwnd != NULL)
+				PostMessage(hwnd, WM_CLOSE, 0, 0);
+			return;
+		}
 	}
 	if (command == "ONOFFHOGTOGGLE") {
 		listening = !listening;
-		return;
-	}
-	if (command == "GOOGLESEARCH") {
-		openTar(string("https://google.com/search?q=") + getClipboardText());
 		return;
 	}
 
@@ -954,11 +1006,12 @@ void runCommand(string command) {
 }
 
 void writeText(string text) {
-	std::map<UINT, HANDLE> savedClipboardData = saveClipboardData();
-	setClipboardText(text);
-	simulatePaste();
-	Sleep(10);
-	restoreClipboardData(savedClipboardData);
+	//std::map<UINT, HANDLE> savedClipboardData = saveClipboardData();
+	//setClipboardText(text);
+	//simulatePaste();
+	//Sleep(10);
+	//restoreClipboardData(savedClipboardData);
+	simulateWrite(text);
 }
 
 void excuteTar(string* tar) {

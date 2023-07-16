@@ -28,6 +28,11 @@
 #include <ShObjIdl.h>
 #include <atlcom.h>
 #include <UIAutomation.h>
+
+#include <string>
+#include <regex>
+#include <cstdlib> // for std::getenv
+
 #define WM_TRAYICON (WM_USER + 1)
 #define WM_CONFIGMESSAGE (WM_USER + 2)
 #define IDI_ICON 101
