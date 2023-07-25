@@ -334,6 +334,23 @@ std::string getClipboardText() {
 	return result;
 }
 
+void EditPDFText(std::string str) {
+	std::string to_replace("。\r\n");
+	std::string replacement("askdfjalsfi");
+	std::size_t pos;
+
+	while ((pos = str.find(to_replace)) != std::string::npos) 
+		str.replace(pos, to_replace.length(),replacement);
+
+	str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
+	str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
+	str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
+
+	while ((pos = str.find(replacement)) != std::string::npos) 
+		str.replace(pos, replacement.length(),to_replace);
+	setClipboardText(str);
+}
+
 void simulatePaste() {
 	keybd_event(VK_CONTROL, 0, 0, 0);
 	keybd_event('V', 0, 0, 0);
@@ -994,6 +1011,10 @@ void runCommand(string command) {
 			HWND hwnd = GetForegroundWindow();
 			if (hwnd != NULL)
 				PostMessage(hwnd, WM_CLOSE, 0, 0);
+			return;
+		}
+		if (command == "COPYPDFTEXT") {
+			EditPDFText(getClipboardText());
 			return;
 		}
 	}
