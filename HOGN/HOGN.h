@@ -74,6 +74,12 @@ typedef struct letter {
 	}
 }ltr;
 
+struct actionRecord{
+	int action;//0->click,1->keyboard,2->move
+	int value1;//click&keyboard:0->down,1->up;move:x_axis
+	int value2;//click:0->left,1->right;keyboard:keyChar;move:y_axis
+};
+
 string para_path;
 string para_dir;
 struct letter *o, *mark;
@@ -82,8 +88,12 @@ int char_down;
 high_resolution_clock::time_point lastTime;
 bool trayIconVisible;
 HHOOK myhook;
+HHOOK mouseHook;
 NOTIFYICONDATA nid;
 bool listening;
+vector<struct actionRecord> actions;
+bool action_listening;
+bool action_doing;
 
 std::string config_text = "//配置系统托盘图标显示\n"
 "JFAI SET:TRAYICONENABLE:ON\n"

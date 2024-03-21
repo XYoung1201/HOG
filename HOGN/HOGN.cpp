@@ -1,6 +1,100 @@
 ﻿#include"HOGN.h"
 #include "resource.h"
 
+// 记录鼠标点击
+void recordClick(int button, int state) {
+	actionRecord record;
+	record.action = 0; // 鼠标点击
+	record.value1 = state; // 0->down, 1->up
+	record.value2 = button; // 0->left, 1->right
+	actions.push_back(record);
+}
+
+void replayMouseClick(int button, int state) {
+	INPUT input[1] = {};
+	input[0].type = INPUT_MOUSE;
+	if (button == 0) { // 左键
+		input[0].mi.dwFlags = (state == 0) ? MOUSEEVENTF_LEFTDOWN : MOUSEEVENTF_LEFTUP;
+	}
+	else if (button == 1) { // 右键
+		input[0].mi.dwFlags = (state == 0) ? MOUSEEVENTF_RIGHTDOWN : MOUSEEVENTF_RIGHTUP;
+	}
+	SendInput(1, input, sizeof(INPUT));
+}
+
+
+// 记录键盘活动
+void recordKeyboard(int keyChar, int state) {
+	actionRecord record;
+	record.action = 1; // 键盘
+	record.value1 = state; // 0->down, 1->up
+	record.value2 = keyChar; // 键码
+	actions.push_back(record);
+}
+
+void replayKeyboardAction(int vkCode, int state) {
+	INPUT input[1] = {};
+	input[0].type = INPUT_KEYBOARD;
+	input[0].ki.wVk = vkCode;
+	input[0].ki.dwFlags = (state == 0) ? 0 : KEYEVENTF_KEYUP;
+	SendInput(1, input, sizeof(INPUT));
+}
+
+
+// 记录鼠标移动
+void recordMove(int x, int y) {
+	actionRecord record;
+	record.action = 2; // 鼠标移动
+	record.value1 = x;
+	record.value2 = y;
+	
+	actions.push_back(record);
+}
+
+double getzoom() {
+	HWND hd = GetDesktopWindow();
+	int zoom = GetDpiForWindow(hd);
+	double dpi = 0;
+	switch (zoom) {
+	case 96:
+		dpi = 1;
+		std::cout << "100%" << std::endl;
+		break;
+	case 120:
+		dpi = 1.25;
+		std::cout << "125%" << std::endl;
+		break;
+	case 144:
+		dpi = 1.5;
+		std::cout << "150%" << std::endl;
+		break;
+	case 192:
+		dpi = 2;
+		std::cout << "200%" << std::endl;
+		break;
+	default:
+		std::cout << "error" << std::endl;
+		break;
+	}
+	return dpi;
+}
+
+void replayMouseMove(int x, int y) {
+	INPUT input[1] = {};
+	input[0].type = INPUT_MOUSE;
+	input[0].mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE;
+	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+	double dpi = getzoom();
+
+	input[0].mi.dx = round(double(x * 65535)/(screenWidth*dpi));
+	input[0].mi.dy = round(double(y * 65555)/(screenHeight*dpi));
+
+	SendInput(1, input, sizeof(INPUT));
+}
+
+
 void DrawTextWithLineSpacing(HDC hdc, const TCHAR* text, int count, RECT* rect, UINT format, int lineSpacing)
 {
 	// Create a new black brush to fill the background
@@ -336,15 +430,18 @@ std::string getClipboardText() {
 
 void EditPDFText(std::string str) {
 	std::string to_replace("。\r\n");
-	std::string replacement("askdfjalsfi");
+	std::string replacement(".");
 	std::size_t pos;
 
+	while ((pos = str.find(to_replace)) != std::string::npos) 
+		str.replace(pos, to_replace.length(),replacement);
+	to_replace = (".\r\n");
 	while ((pos = str.find(to_replace)) != std::string::npos) 
 		str.replace(pos, to_replace.length(),replacement);
 
 	str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
 	str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
-	str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
+	str.erase(std::remove(str.begin(), str.end(), '  '), str.end());
 
 	while ((pos = str.find(replacement)) != std::string::npos) 
 		str.replace(pos, replacement.length(),to_replace);
@@ -359,22 +456,51 @@ void simulatePaste() {
 }
 
 void simulatePush(char c) {
-    INPUT input[2];
-    ZeroMemory(input, sizeof(input));
+	// VkKeyScan返回的是虚拟按键码和需要的修饰符的组合
+	SHORT vkCode = VkKeyScan(c);
+	// 分离出虚拟按键码和修饰符
+	BYTE vk = LOBYTE(vkCode);
+	BYTE shiftState = HIBYTE(vkCode);
 
-    input[0].type = INPUT_KEYBOARD;
-    input[0].ki.wVk = VkKeyScan(c);  
+	INPUT input[4]; // 可能需要发送多达4个事件（Shift按下和释放，字符按下和释放）
+	int nInputs = 0; // 输入事件的实际数量
 
-    input[1].type = INPUT_KEYBOARD;
-    input[1].ki.wVk = VkKeyScan(c);
-    input[1].ki.dwFlags = KEYEVENTF_KEYUP;  
+	ZeroMemory(input, sizeof(input));
 
-    SendInput(2, input, sizeof(INPUT));
+	// 如果需要按下Shift键
+	if (shiftState & 1) {
+		input[nInputs].type = INPUT_KEYBOARD;
+		input[nInputs].ki.wVk = VK_SHIFT;
+		nInputs++;
+	}
+
+	// 字符键按下
+	input[nInputs].type = INPUT_KEYBOARD;
+	input[nInputs].ki.wVk = vk;
+	nInputs++;
+
+	// 字符键释放
+	input[nInputs].type = INPUT_KEYBOARD;
+	input[nInputs].ki.wVk = vk;
+	input[nInputs].ki.dwFlags = KEYEVENTF_KEYUP;
+	nInputs++;
+
+	// 如果按下了Shift键，现在释放
+	if (shiftState & 1) {
+		input[nInputs].type = INPUT_KEYBOARD;
+		input[nInputs].ki.wVk = VK_SHIFT;
+		input[nInputs].ki.dwFlags = KEYEVENTF_KEYUP;
+		nInputs++;
+	}
+
+	// 发送按键事件
+	SendInput(nInputs, input, sizeof(INPUT));
 }
 
 void simulateWrite(string str) {
 	for (char i : str) {
 		simulatePush(i);
+		Sleep(1);
 	}
 }
 
@@ -690,6 +816,7 @@ void openTar(string target) {
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	bool listeningState = listening;
 	switch (msg) {
 	case WM_CREATE: {
 		ZeroMemory(&nid, sizeof(NOTIFYICONDATA));
@@ -707,13 +834,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	case WM_COMMAND:
 		switch (LOWORD(wParam)) {
 		case ID_TRAY_EXIT:
+			listening = true;
 			runCommand("QUIT");
+			listening = listeningState;
 			break;
 		case ID_TRAY_RELOAD:
+			listening = true;
 			runCommand("RELOAD");
+			listening = listeningState;
 			break;
 		case ID_TRAY_CONFIG:
+			listening = true;
 			runCommand("CONFIG");
+			listening = listeningState;
 			break;
 		case ID_TRAY_PAUSE:
 			if (listening != false)
@@ -724,10 +857,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				toggleTrayIcon();
 			break;
 		case ID_TRAY_QRCODE:
+			listening = true;
 			runCommand("QRCODE");
+			listening = listeningState;
 			break;
 		case ID_TRAY_CLOSEDIRECTORIES:
+			listening = true;
 			runCommand("CLOSEALLDIRECTORIES");
+			listening = listeningState;
 			break;
 		}
 		break;
@@ -960,6 +1097,8 @@ void runCommand(string command) {
 			int result = MessageBox(GetForegroundWindow(), CString("Do you want to quit HOGN?"), CString("Quit"), MB_OKCANCEL);
 			if (result == 1) {
 				UnhookWindowsHookEx(myhook);
+				UnhookWindowsHookEx(mouseHook);
+
 				clearMem(o);
 				exit(0);
 			}
@@ -1017,6 +1156,47 @@ void runCommand(string command) {
 			EditPDFText(getClipboardText());
 			return;
 		}
+		if (command == "RECORD") {
+			action_listening = !action_listening;
+			if (action_listening) {
+				actions.clear();
+			}
+			else {
+				actions.erase(actions.end() - mark->num * 3 + 1, actions.end());
+				actions.erase(actions.begin(), actions.begin() + 1);
+			}
+			return;
+		}
+		if (command == "ACTION") {
+			action_doing = true;
+			int last_action_num = 2;
+			for (const auto& record : actions) {
+				switch (record.action) {
+				case 0: // Mouse click
+					if (last_action_num != 0)
+						Sleep(300);
+					else
+						Sleep(10);
+					replayMouseClick(record.value2, record.value1);
+					last_action_num = 0;
+					break;
+				case 1: // Keyboard
+					if (last_action_num != 1)
+						Sleep(300);
+					else
+						Sleep(10);
+					replayKeyboardAction(record.value2, record.value1);
+					last_action_num = 1;
+					break;
+				case 2: // Mouse move
+					Sleep(10);
+					replayMouseMove(record.value1, record.value2);
+					last_action_num = 2;
+					break;
+				}
+			}
+			return;
+		}
 	}
 	if (command == "ONOFFHOGTOGGLE") {
 		listening = !listening;
@@ -1061,32 +1241,69 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 	if (nCode >= 0) {
 		high_resolution_clock::time_point thisTime = high_resolution_clock::now();
 		int interval_ms = (std::chrono::duration_cast<milliseconds>(thisTime - lastTime)).count();
-
+		int state = 0;
 		if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
+			state = 0;
 			if (getKeyState)
 				lastTime = thisTime;
 			keyStateChange(press->vkCode, false);
 			if (mark->a != NULL)
 			{
-				if(!isActiveWindowExplorer() && listening)
+				if (!isActiveWindowExplorer() && listening) {
 					TouchBackspace(mark->num);
-				if (!not_up[26] && !not_up[27])
+				}
+				if (!not_up[26] && !not_up[27] && !action_doing) {
 					excuteTar(mark->a);
+					action_doing = false;
+				}
 				mark = o;
 			}
 		}
 
 		if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
+			state = 1;
 			if(!getKeyState(press->vkCode))
 				lastTime = thisTime;
 			keyStateChange(press->vkCode, true);
 			mark = getNextLetter(mark, press->vkCode);
 		}
 
+		if (action_listening)
+			recordKeyboard(press->vkCode, state);
+
 		if (interval_ms > 1000)
 			mark = getNextLetter(o,press->vkCode);
 	}
 	return CallNextHookEx(myhook, nCode, wParam, lParam);
+}
+
+LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
+	if (nCode >= 0) {
+		PMOUSEHOOKSTRUCT mouse = (PMOUSEHOOKSTRUCT)lParam;
+		switch (wParam) {
+		case WM_LBUTTONDOWN:
+			if (action_listening)
+				recordClick(0, 0); // 左键按下
+			break;
+		case WM_LBUTTONUP:
+			if (action_listening)
+				recordClick(0, 1); // 左键释放
+			break;
+		case WM_RBUTTONDOWN:
+			if (action_listening)
+				recordClick(1, 0); // 右键按下
+			break;
+		case WM_RBUTTONUP:
+			if (action_listening)
+				recordClick(1, 1); // 右键释放
+			break;
+		case WM_MOUSEMOVE:
+			if (action_listening)
+				recordMove(mouse->pt.x, mouse->pt.y); // 鼠标移动
+			break;
+		}
+	}
+	return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
 void firstInitialJudge() {
@@ -1110,8 +1327,12 @@ int main() {
 	}
 	trayIconVisible = true;
 	listening = true;
+	action_listening = false;
+	action_doing = false;
 	lastTime = high_resolution_clock::now();
 	myhook = SetWindowsHookEx(WH_KEYBOARD_LL, KeyboardProc, GetCurrentModule(), 0);
+	mouseHook = SetWindowsHookEx(WH_MOUSE_LL, MouseProc, GetCurrentModule(), 0);
+
 	MSG msg;
 	para_path = "C:\\ProgramData\\HOG\\HOG.conf";
 	para_dir = "C:\\ProgramData\\HOG";
