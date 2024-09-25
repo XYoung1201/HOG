@@ -1,6 +1,83 @@
 ﻿#include"HOGN.h"
 #include "resource.h"
+// 函数用于显示提示框
+bool AskToUseDefaultPath() {
+	int result = MessageBox(NULL,
+		TEXT("使用默认配置文件？"),
+		TEXT("保存配置"),
+		MB_YESNO | MB_ICONQUESTION);
 
+	return (result == IDYES); // 返回用户选择，Yes为true，No为false
+}
+
+// 函数用于打开文件选择对话框
+std::string GetCustomSavePath() {
+	OPENFILENAME ofn;       // 文件选择对话框结构
+	char szFile[260] = { 0 }; // 存储选择的文件路径
+	ZeroMemory(&ofn, sizeof(ofn));
+
+	ofn.lStructSize = sizeof(ofn);
+	ofn.hwndOwner = NULL; // 无父窗口
+	ofn.lpstrFile = szFile; // 缓冲区存储文件名
+	ofn.nMaxFile = sizeof(szFile);
+	ofn.lpstrFilter = "Config Files (*.conf)\0*.conf\0All Files (*.*)\0*.*\0";
+	ofn.nFilterIndex = 1;
+	ofn.lpstrFileTitle = NULL;
+	ofn.nMaxFileTitle = 0;
+	ofn.lpstrInitialDir = NULL;
+	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+	// 显示文件选择对话框
+	if (GetSaveFileName(&ofn)) {
+		return std::string(ofn.lpstrFile);
+	}
+	return ""; // 如果未选择文件返回空字符串
+}
+
+void configFileSet() {
+	if (AskToUseDefaultPath()) {
+		ofstream fout(config_path);
+		fout << config_text;
+		fout.close();
+		ShellExecute(NULL, CString("open"), CString(config_path.c_str()), NULL, NULL, SW_SHOW);
+	}
+	else {
+		std::string customPath = GetCustomSavePath();
+		if (!customPath.empty()) {
+			config_path = customPath;
+			ShellExecute(NULL, CString("open"), CString(config_path.c_str()), NULL, NULL, SW_SHOW);
+		}
+		else {
+			ofstream fout(config_path);
+			fout << config_text;
+			fout.close();
+			ShellExecute(NULL, CString("open"), CString(config_path.c_str()), NULL, NULL, SW_SHOW);
+		}
+	}
+}
+
+// 函数1：读取文件内容
+std::string ReadFileToString(const std::string& filePath) {
+	std::ifstream file(filePath);  // 打开文件
+	if (!file.is_open()) {
+		return "";  // 打不开文件时返回空字符串
+	}
+
+	std::stringstream buffer;
+	buffer << file.rdbuf();  // 读取文件内容到缓冲区
+	return buffer.str();  // 返回文件内容的字符串
+}
+
+// 函数2：写入字符串到文件
+bool WriteStringToFile(const std::string& filePath, const std::string& content) {
+	std::ofstream file(filePath);  // 打开文件（自动覆盖原内容）
+	if (!file.is_open()) {
+		return false;  // 打不开文件时返回失败
+	}
+
+	file << content;  // 写入内容
+	return true;  // 返回成功
+}
 // 记录鼠标点击
 void recordClick(int button, int state) {
 	actionRecord record;
@@ -22,7 +99,6 @@ void replayMouseClick(int button, int state) {
 	SendInput(1, input, sizeof(INPUT));
 }
 
-
 // 记录键盘活动
 void recordKeyboard(int keyChar, int state) {
 	actionRecord record;
@@ -40,13 +116,14 @@ void replayKeyboardAction(int vkCode, int state) {
 	SendInput(1, input, sizeof(INPUT));
 }
 
-
 // 记录鼠标移动
 void recordMove(int x, int y) {
 	actionRecord record;
 	record.action = 2; // 鼠标移动
-	record.value1 = x;
-	record.value2 = y;
+	POINT initialPos; // 用于存储初始位置
+	GetCursorPos(&initialPos);
+	record.value1 = initialPos.x;
+	record.value2 = initialPos.y;
 	
 	actions.push_back(record);
 }
@@ -58,42 +135,37 @@ double getzoom() {
 	switch (zoom) {
 	case 96:
 		dpi = 1;
-		std::cout << "100%" << std::endl;
 		break;
 	case 120:
 		dpi = 1.25;
-		std::cout << "125%" << std::endl;
 		break;
 	case 144:
 		dpi = 1.5;
-		std::cout << "150%" << std::endl;
 		break;
 	case 192:
 		dpi = 2;
-		std::cout << "200%" << std::endl;
 		break;
 	default:
-		std::cout << "error" << std::endl;
 		break;
 	}
 	return dpi;
 }
 
 void replayMouseMove(int x, int y) {
-	INPUT input[1] = {};
-	input[0].type = INPUT_MOUSE;
-	input[0].mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE;
-	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
-	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+	//INPUT input[1] = {};
+	//input[0].type = INPUT_MOUSE;
+	//input[0].mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE;
+	//int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+	//int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
-	double dpi = getzoom();
+	//double dpi = getzoom();
 
-	input[0].mi.dx = round(double(x * 65535)/(screenWidth*dpi));
-	input[0].mi.dy = round(double(y * 65555)/(screenHeight*dpi));
+	//input[0].mi.dx = round(double(x * 65535)/(screenWidth*dpi));
+	//input[0].mi.dy = round(double(y * 65555)/(screenHeight*dpi));
 
-	SendInput(1, input, sizeof(INPUT));
+	//SendInput(1, input, sizeof(INPUT));
+	SetCursorPos(x,y);
 }
-
 
 void DrawTextWithLineSpacing(HDC hdc, const TCHAR* text, int count, RECT* rect, UINT format, int lineSpacing)
 {
@@ -217,7 +289,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
 			CLIP_DEFAULT_PRECIS,
 			DEFAULT_QUALITY,
 			DEFAULT_PITCH | FF_DONTCARE,
-			_T("Arial")); // You can change the font name here
+			_T("Aria")); // You can change the font name here
 
 		// Select the new font into the HDC
 		HFONT hOldFont = (HFONT)SelectObject(hdc, hFont);
@@ -556,7 +628,7 @@ void closeAllDirectories() {
 
 bool isActiveWindowExplorer() {
 	const int maxLength = 256;
-	wchar_t className[maxLength];
+	char className[maxLength];
 
 	// 获取当前活动窗口的句柄
 	HWND activeWindow = GetForegroundWindow();
@@ -564,11 +636,11 @@ bool isActiveWindowExplorer() {
 	// 获取窗口类名
 	GetClassName(activeWindow, className, maxLength);
 
-	// 将 wchar_t 转换为 std::wstring 以进行比较
-	std::wstring wClassName(className);
+	// 将 char 转换为 std::string 以进行比较
+	std::string wClassName(className);
 
 	// 检查窗口类名是否是 "CabinetWClass" 或 "ExploreWClass"
-	if (wClassName == L"CabinetWClass" || wClassName == L"ExploreWClass") {
+	if (wClassName == "CabinetWClass" || wClassName == "ExploreWClass") {
 		return true;
 	}
 	else {
@@ -658,7 +730,7 @@ void setVolume(float volume) {
 
 	HRESULT hr = endpointVolume->SetMasterVolumeLevelScalar(volume, NULL);
 	if (FAILED(hr)) {
-		std::cerr << "Error setting volume level" << std::endl;
+		std::cerr << "Error setting volume leve" << std::endl;
 	}
 }
 
@@ -671,7 +743,7 @@ float getVolume() {
 	float currentVolume = 0.0f;
 	HRESULT hr = endpointVolume->GetMasterVolumeLevelScalar(&currentVolume);
 	if (FAILED(hr)) {
-		std::cerr << "Error getting volume level" << std::endl;
+		std::cerr << "Error getting volume leve" << std::endl;
 		return -1.0f;
 	}
 
@@ -693,11 +765,11 @@ void toggleMute() {
 
 	if (isMuted) {
 		unmute();
-		MessageBox(GetForegroundWindow(), L"Sound on!", CString("Prompt"), MB_OK);
+		MessageBox(GetForegroundWindow(), "Sound on!", CString("Prompt"), MB_OK);
 	}
 	else {
 		mute();
-		MessageBox(GetForegroundWindow(), L"Sound off!", CString("Prompt"), MB_OK);
+		MessageBox(GetForegroundWindow(), "Sound off!", CString("Prompt"), MB_OK);
 	}
 }
 
@@ -803,7 +875,10 @@ void openTar(string target) {
 	myProcess.lpDirectory = _T("C:\\");
 	CString temp = replaceEnvironmentVariables(target).c_str();
 	myProcess.lpFile = temp;
-	myProcess.lpVerb = _T("open");
+	if (target == "CMD" || target == "POWERSHELL")
+		myProcess.lpVerb = _T("runas");
+	else
+		myProcess.lpVerb = _T("open");
 	myProcess.cbSize = sizeof(myProcess);
 	ShellExecuteEx(&myProcess);
 	EnumWindows(getRightHWND, (LPARAM)&myProcess);
@@ -826,7 +901,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		nid.uVersion = NOTIFYICON_VERSION;
 		nid.uCallbackMessage = WM_TRAYICON;
 		nid.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON));
-		wcscpy_s(nid.szTip, _countof(nid.szTip), L"HOG"); // Use wcscpy_s to copy the wide string
+		strcpy_s(nid.szTip, _countof(nid.szTip), "HOG"); // Use wcscpy_s to copy the wide string
 		nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;
 		Shell_NotifyIcon(NIM_ADD, &nid);
 	}
@@ -866,6 +941,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			runCommand("CLOSEALLDIRECTORIES");
 			listening = listeningState;
 			break;
+		case ID_TRAY_CHANGECONF:
+			runCommand("CHANGECONF");
+			break;
 		}
 		break;
 	case WM_TRAYICON:
@@ -882,6 +960,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				AppendMenu(hMenu, MF_STRING, ID_TRAY_START, TEXT("Start Listening"));
 			AppendMenu(hMenu, MF_STRING, ID_TRAY_CONFIG, TEXT("Edit Config"));
 			AppendMenu(hMenu, MF_STRING, ID_TRAY_RELOAD, TEXT("Reload Config"));
+			AppendMenu(hMenu, MF_STRING, ID_TRAY_CHANGECONF, TEXT("Change Config"));
 			AppendMenu(hMenu, MF_STRING, ID_TRAY_QRCODE, TEXT("Show Clipboard QRcode"));
 			AppendMenu(hMenu, MF_STRING, ID_TRAY_CLOSEDIRECTORIES, TEXT("Close all Directories"));
 			AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
@@ -1039,7 +1118,7 @@ void readPara() {
 	o = NULL;
 	o = new struct letter(o);
 	mark = o;
-	ifstream in(para_path);
+	ifstream in(config_path);
 	string line;
 	do {
 		getline(in, line);
@@ -1091,6 +1170,16 @@ struct letter* getNextLetter(struct letter* lastCode, int code) {
 	return o;
 }
 
+int getClipboardNumber() {
+	string clipboardText = getClipboardText();
+	std::string::const_iterator it = clipboardText.begin();
+	while (it != clipboardText.end() && std::isdigit(*it)) ++it;
+	if (!clipboardText.empty() && it == clipboardText.end())
+		return std::stoi(clipboardText); // 将字符串转换为整数
+	else
+		return 1;
+}
+
 void runCommand(string command) {
 	if (listening) {
 		if (command == "QUIT") {
@@ -1114,8 +1203,17 @@ void runCommand(string command) {
 			MessageBox(GetForegroundWindow(), CString("Reload Successfully!"), CString("Success"), MB_OK);
 			return;
 		}
+		if (command == "CHANGECONF") {
+			std::string customPath = GetCustomSavePath();
+			if (!customPath.empty()) {
+				config_path = customPath;
+				runCommand("RELOAD");
+				WriteStringToFile(para_path, config_path);
+			}
+			return;
+		}
 		if (command == "CONFIG") {
-			openTar(para_path);
+			openTar(config_path);
 			return;
 		}
 		if (command == "MUTETOGGLE") {
@@ -1139,7 +1237,7 @@ void runCommand(string command) {
 			return;
 		}
 		if (command == "OPENCMDINCURRENTPATH") {
-			MessageBox(GetForegroundWindow(), L"", CString("Success"), MB_OK);
+			MessageBox(GetForegroundWindow(), "", CString("Success"), MB_OK);
 			return;
 		}
 		if (command == "GOOGLESEARCH") {
@@ -1170,29 +1268,32 @@ void runCommand(string command) {
 		if (command == "ACTION") {
 			action_doing = true;
 			int last_action_num = 2;
-			for (const auto& record : actions) {
-				switch (record.action) {
-				case 0: // Mouse click
-					if (last_action_num != 0)
-						Sleep(300);
-					else
+			int repeat_num = getClipboardNumber();
+			while (repeat_num-- && action_doing) {
+				for (const auto& record : actions) {
+					switch (record.action) {
+					case 0: // Mouse click
+						if (last_action_num != 0)
+							Sleep(300);
+						else
+							Sleep(100);
+						replayMouseClick(record.value2, record.value1);
+						last_action_num = 0;
+						break;
+					case 1: // Keyboard
+						if (last_action_num != 1)
+							Sleep(300);
+						else
+							Sleep(100);
+						replayKeyboardAction(record.value2, record.value1);
+						last_action_num = 1;
+						break;
+					case 2: // Mouse move
 						Sleep(10);
-					replayMouseClick(record.value2, record.value1);
-					last_action_num = 0;
-					break;
-				case 1: // Keyboard
-					if (last_action_num != 1)
-						Sleep(300);
-					else
-						Sleep(10);
-					replayKeyboardAction(record.value2, record.value1);
-					last_action_num = 1;
-					break;
-				case 2: // Mouse move
-					Sleep(10);
-					replayMouseMove(record.value1, record.value2);
-					last_action_num = 2;
-					break;
+						replayMouseMove(record.value1, record.value2);
+						last_action_num = 2;
+						break;
+					}
 				}
 			}
 			return;
@@ -1238,6 +1339,7 @@ void excuteTar(string* tar) {
 LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
 	PKBDLLHOOKSTRUCT press = (PKBDLLHOOKSTRUCT)lParam;
+
 	if (nCode >= 0) {
 		high_resolution_clock::time_point thisTime = high_resolution_clock::now();
 		int interval_ms = (std::chrono::duration_cast<milliseconds>(thisTime - lastTime)).count();
@@ -1261,6 +1363,10 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 		}
 
 		if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
+			if (press->vkCode == 0x51) {
+				//如果按下的是Q键，退出循环回放模式
+				action_doing = false;
+			}
 			state = 1;
 			if(!getKeyState(press->vkCode))
 				lastTime = thisTime;
@@ -1310,16 +1416,16 @@ void firstInitialJudge() {
 	if (_access(para_dir.c_str(), 0) == -1)
 		if (_mkdir(para_dir.c_str()) == -1)
 			return;
-	if (_access(para_path.c_str(), 0) == -1) {
-		ofstream fout(para_path);
-		fout << config_text;
-		fout.close();
-		ShellExecute(NULL, CString("open"), CString(para_path.c_str()), NULL, NULL, SW_SHOW);
+	if (_access(para_path.c_str(), 0) != -1)
+		config_path = ReadFileToString(para_path);
+	if (_access(config_path.c_str(), 0) == -1) {
+		configFileSet();
 	}
+	WriteStringToFile(para_path, config_path);
 }
 
 int main() {
-	HANDLE hMutex = CreateMutex(NULL, TRUE, L"Global\\HOGNMutex");
+	HANDLE hMutex = CreateMutex(NULL, TRUE, "Global\\HOGNMutex");
 
 	if (GetLastError() == ERROR_ALREADY_EXISTS) {
 		MessageBox(GetForegroundWindow(), _T("An instance of this application is already running!"), _T("Warning"), MB_OK);
@@ -1330,14 +1436,15 @@ int main() {
 	action_listening = false;
 	action_doing = false;
 	lastTime = high_resolution_clock::now();
-	myhook = SetWindowsHookEx(WH_KEYBOARD_LL, KeyboardProc, GetCurrentModule(), 0);
-	mouseHook = SetWindowsHookEx(WH_MOUSE_LL, MouseProc, GetCurrentModule(), 0);
-
+	
 	MSG msg;
-	para_path = "C:\\ProgramData\\HOG\\HOG.conf";
+	para_path = "C:\\ProgramData\\HOG\\config";
+	config_path = "C:\\ProgramData\\HOG\\HOG.conf";
 	para_dir = "C:\\ProgramData\\HOG";
 	firstInitialJudge();
 	windowCreate();
 	readPara();
+	myhook = SetWindowsHookEx(WH_KEYBOARD_LL, KeyboardProc, GetCurrentModule(), 0);
+	mouseHook = SetWindowsHookEx(WH_MOUSE_LL, MouseProc, GetCurrentModule(), 0);
 	while (GetMessageW(&msg, NULL, 0, 0) != -1);
 }

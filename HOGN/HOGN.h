@@ -29,6 +29,11 @@
 #include <atlcom.h>
 #include <UIAutomation.h>
 
+#include <windows.h>
+#include <commdlg.h>
+#include <iostream>
+
+
 #include <string>
 #include <regex>
 #include <cstdlib> // for std::getenv
@@ -44,6 +49,7 @@
 #define ID_TRAY_START 9005
 #define ID_TRAY_QRCODE 9006
 #define ID_TRAY_CLOSEDIRECTORIES 9007
+#define ID_TRAY_CHANGECONF 9008
 
 
 using namespace std;
@@ -81,6 +87,7 @@ struct actionRecord{
 };
 
 string para_path;
+string config_path;
 string para_dir;
 struct letter *o, *mark;
 bool not_up[28];
@@ -95,11 +102,9 @@ vector<struct actionRecord> actions;
 bool action_listening;
 bool action_doing;
 
-std::string config_text = "//配置系统托盘图标显示\n"
+std::string config_text = 
 "JFAI SET:TRAYICONENABLE:ON\n"
 "//JFAI SET:TRAYICONENABLE:OFF\n"
-"\n"
-"//内置命令\n"
 "JFRLD CMD:RELOAD\n"
 "JFQT CMD:QUIT\n"
 "JFQR CMD:QRCODE\n"
@@ -112,41 +117,6 @@ std::string config_text = "//配置系统托盘图标显示\n"
 "JFCLRB CMD:CANCELSHUTDOWNORREBOOT\n"
 "JFOCMD CMD:OPENCMDINCURRENTPATH\n"
 "JFOSWT CMD:ONOFFHOGTOGGLE\n"
-"\n"
-"//系统路径\n"
-"JFETC PATH:C:\\WINDOWS\\SYSTEM32\\DRIVERS\\ETC\n"
-"JFHOG PATH:C:\\ProgramData\\HOG\n"
-"JFQD PATH:C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\n"
-"\n"
-"//专用文件夹\n"
-"JFCX PATH:C:\\Program Files\\\n"
-"\n"
-"//系统应用\n"
-"JFTXT PATH:C:\\Program Files\\WindowsApps\\Microsoft.WindowsNotepad_11.2303.40.0_x64__8wekyb3d8bbwe\\Notepad\\Notepad.exe\n"
-"JFTSK PATH:C:\\Windows\\system32\\taskmgr.exe\n"
-"JFHSZ PATH:SHELL:RecycleBinFolder\n"
-"JFMD PATH:C:\\Windows\\system32\\cmd.exe\n"
-"\n"
-"//应用程序\n"
-"//JFTK PATH:C:\\Program Files (x86)\\滴答清单\\TickTick.exe\n"
-"//JFNTN PATH:C:\\Users\\huang\\AppData\\Local\\Programs\\Notion\\Notion.exe\n"
-"//JFPDF PATH:C:\\Program Files\\Adobe\\Acrobat DC\\Acrobat\\Acrobat.exe\n"
-"//JFRM PATH:C:\\Program Files\\UninstallTool\\UninstallToolPortable.exe\n"
-"//JFXMD PATH:C:\\Program Files\\Xmind\\Xmind.exe\n"
-"//JFXID PATH:C:\\Program Files (x86)\\Internet Download Manager\\IDMan.exe\n"
-"//JFPS PATH:C:\\Program Files\\Adobe\\Adobe Photoshop 2023\\Photoshop.exe\n"
-"//*+ PATH:C:\\Program Files\\Everything\\Everything.exe\n"
-"//JFCM PATH:C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe\n"
-"//JFWX PATH:C:\\Program Files (x86)\\Tencent\\WeChat\\WeChat.exe\n"
-"\n"
-"//链接地址\n"
-"JFGML PATH:https://mail.google.com\n"
-"JFWML PATH:https://mail.163.com\n"
-"JFXGD PATH:https://nwpu.edu.cn\n"
-"JFTEL PATH:https://web.telegram.org\n"
-"JFGPT PATH:https://chat.openai.com/chat\n"
-"\n"
-"//文本输入\n"
 "*JFYX TEXT:aaaa@gmail.com";
 
 void readPara();
