@@ -128,6 +128,25 @@ void recordMove(int x, int y) {
 	actions.push_back(record);
 }
 
+bool IsProcessRunAsAdmin()
+{
+	SID_IDENTIFIER_AUTHORITY NtAuthority = SECURITY_NT_AUTHORITY;
+	PSID AdministratorsGroup;
+	BOOL b = AllocateAndInitializeSid(
+		&NtAuthority,
+		2,
+		SECURITY_BUILTIN_DOMAIN_RID,
+		DOMAIN_ALIAS_RID_ADMINS,
+		0, 0, 0, 0, 0, 0,
+		&AdministratorsGroup);
+	if (b)
+	{
+		CheckTokenMembership(NULL, AdministratorsGroup, &b);
+		FreeSid(AdministratorsGroup);
+	}
+	return b == TRUE;
+}
+
 double getzoom() {
 	HWND hd = GetDesktopWindow();
 	int zoom = GetDpiForWindow(hd);
@@ -868,14 +887,14 @@ std::string replaceEnvironmentVariables(const std::string& input) {
 	return result;
 }
 
-void openTar(string target) {
+void openTar(string target,bool Adiministrator = false) {
 	SHELLEXECUTEINFO myProcess = { 0 };
 	myProcess.nShow = SW_SHOWMAXIMIZED;
-	myProcess.fMask = SEE_MASK_NOCLOSEPROCESS;// | SEE_MASK_NOASYNC | SEE_MASK_WAITFORINPUTIDLE;
+	myProcess.fMask = SEE_MASK_NOCLOSEPROCESS;
 	myProcess.lpDirectory = _T("C:\\");
 	CString temp = replaceEnvironmentVariables(target).c_str();
 	myProcess.lpFile = temp;
-	if (target == "CMD" || target == "POWERSHELL")
+	if (Adiministrator)
 		myProcess.lpVerb = _T("runas");
 	else
 		myProcess.lpVerb = _T("open");
@@ -1321,6 +1340,7 @@ void excuteTar(string* tar) {
 	string cmd = extractContent(*tar, "CMD:");
 	string set = extractContent(*tar, "SET:");
 	string path = extractContent(*tar,"PATH:");
+	string path_A = extractContent(*tar,"PATH_A:");
 	try {
 		if (text != "" && listening)
 			writeText(text);
@@ -1330,6 +1350,8 @@ void excuteTar(string* tar) {
 			handleSet(set);
 		else if (path != "" && listening)
 			openTar(path);
+		else if (path_A!="" && listening)
+			openTar(path_A,true);
 	}
 	catch (...) {
 		MessageBox(GetForegroundWindow(), CString("Configure Wrong!"), CString("ERROR"), MB_OK);
