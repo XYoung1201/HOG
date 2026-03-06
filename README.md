@@ -1,77 +1,25 @@
-# HOG (Hotkey Operated Gear)
+⚙️ HOG (Hotkey Operated Gear)<div align="center"><img src="https://www.google.com/search?q=https://img.shields.io/badge/Platform-Windows-blue.svg%3Fstyle%3Dflat-square" alt="Supported Platforms"><img src="https://www.google.com/search?q=https://img.shields.io/badge/Language-C%2B%2B-f34b7d.svg%3Fstyle%3Dflat-square" alt="Language"><img src="https://www.google.com/search?q=https://img.shields.io/github/stars/XYoung1201/HOG%3Fstyle%3Dflat-square" alt="Stars"><img src="https://www.google.com/search?q=https://img.shields.io/github/license/XYoung1201/HOG%3Fstyle%3Dflat-square" alt="License"></div><p align="center"><b><a href="#english">English</a></b> | <b><a href="#简体中文">简体中文</a></b></p><h2 id="english">🇬🇧 English</h2>HOG is a ultra-lightweight Windows global hotkey utility written in C++ and the Win32 API.Unlike traditional single-key or complex chord shortcuts (e.g., Ctrl+Alt+Shift+X) which are prone to conflicts, HOG listens silently in the background and allows you to define Key Sequences (e.g., pressing J F Q R sequentially) to trigger custom actions. Whether it's launching programs, opening folders, pasting predefined text, or executing system commands, everything is defined in a simple plain text configuration file. No recompilation is required, and hot-reloading takes effect immediately.🆚 Comparison with Mainstream ToolsFeature⚙️ HOG🟢 AutoHotkey (AHK)🪟 PowerToys (Keyboard Mgr)Trigger MethodKey Sequences (e.g., J-F-N-P)Mostly Combinations (Ctrl+Shift+A)Combinations / Single RemapConfigurationPlain Text (Simple syntax)Scripting Language (Steep learning curve)GUI (Heavy)Resource UsageExtremely Low (Native C++)MediumHigh (Background services)FlexibilityBuilt-in cmds + Launch + Text pasteTuring complete (Unlimited)Limited to GUI optionsBest For...Users who want conflict-free, vim-style shortcuts with zero programming.Power users who need to write complex automation scripts.General users who just want to remap a few standard keys.✨ Core Features🚀 Minimalist & Lightweight: Pure C++ native development, minimal memory footprint, no bloated background processes.⌨️ Sequential Hotkeys: Support multi-key sequences like JFNP, freeing your fingers and completely avoiding shortcut conflicts.⚙️ Instant Hot-Reload: Simply press your configured reload sequence after modifying the config file—no restart needed.🛠️ Multi-functional Actions:📂 Quickly launch any application or open file/folder paths.📝 Instantly type (paste) predefined text snippets.🧰 Rich built-in commands: Clipboard to QR Code, System Mute, Shutdown/Restart control, etc.👻 Stealth Mode: Supports toggling the system tray icon visibility for completely silent running.🛠️ Installation & BuildMethod 1: Direct Download (Recommended)Go to the Releases page and download the latest HOGN.exe.Method 2: Build from Sourcegit clone https://github.com/XYoung1201/HOG.gitOpen HOGN.sln in Visual Studio 2022.Select the Release configuration and build.📖 Usage GuideRun: Double-click HOGN.exe. It will appear in the system tray and start listening.Config File: On the first run, it creates the configuration file at 👉 C:\ProgramData\HOG\HOG.conf.Edit: Open HOG.conf with any text editor to add your hotkeys.Apply: Save the file and press the key sequence bound to CMD:RELOAD to apply changes instantly.📝 Configuration SyntaxFormat: [Key Sequence] [Action] // CommentExample Sequence: JFQR means press J -> F -> Q -> R in order. Left Ctrl is *, Right Ctrl is +.Action Prefixes: CMD: (System commands), TEXT: (Text input), PATH: (Paths/Executables).// System Controls & Tools
+JFRLD   CMD:RELOAD              // Reload config (J-F-R-L-D)
+JFQT    CMD:QUIT                // Exit HOG
+JFQR    CMD:QRCODE              // Show clipboard text as QR Code
+JFMU    CMD:MUTE                // Toggle system mute
 
-HOG is a lightweight Windows utility written in C++. It listens for user defined
-keyboard sequences and performs different actions such as launching programs or
-pasting text. All hotkeys and actions are described in a plain text
-configuration file so you can customise behaviour without recompiling.
+// Quick Launch (using PATH:)
+JFPF    PATH:C:\Program Files   // Open folder
+JFNP    PATH:notepad.exe        // Launch Notepad
 
-The repository includes a Visual Studio solution (`HOGN.sln`) that builds the
-`HOGN.exe` executable. The example configuration file `HOG.example.conf` shows
-all available commands.
+// Text Snippets (using TEXT:)
+JFSM    TEXT:Hello, World!      // Fast text pasting
+<h2 id="简体中文">🇨🇳 简体中文</h2>HOG 是一款使用 C++ 和 Win32 API 编写的极简轻量级 Windows 全局热键辅助工具。与传统的单键或复杂组合键（如 Ctrl+Alt+Shift+X，极易引起冲突）不同，HOG 在后台静默监听，允许你定义按键序列（类似于 Vim 的操作逻辑，例如依次按下 J F Q R）来触发各类自定义操作。无论是启动程序、打开文件夹、一键粘贴预设长文本，还是执行系统级操作，只需在简单的纯文本配置文件中定义，无需重新编译，热重载即刻生效。🆚 同类软件对比特性维度⚙️ HOG🟢 AutoHotkey (AHK)🪟 PowerToys (键盘管理器)触发方式按键序列 (如依次按 J-F-N-P)传统组合键为主 (Ctrl+Shift+A)组合键 / 单键映射配置难度纯文本 (极简语法，开箱即用)专属脚本语言 (学习曲线极其陡峭)可视化 GUI资源占用极低 (C++ 原生，近乎零感知)中等偏高 (常驻后台服务较重)功能扩展内置系统命令 + 路径启动 + 文本片段图灵完备 (无所不能)局限于官方提供的基础映射适用人群厌倦了快捷键冲突，追求极简、即用即走、无需学习编程的用户。需要编写复杂自动化工作流的高级极客玩家。只需要简单改键的普通桌面用户。✨ 核心特性🚀 极简轻量：纯 C++ 原生开发，内存占用极低，无多余后台驻留。⌨️ 序列化热键：支持如 JFNP 这样的多键序列输入，释放你的手指，彻底告别快捷键冲突。⚙️ 即时热重载：配置文件修改后，只需按下配置好的热载键即可立即生效，无需重启程序。🛠️ 多功能动作支持：📂 快速启动任意应用程序或打开文件/文件夹目录。📝 一键输入（粘贴）预定义的文本片段。🧰 丰富的内置命令：剪贴板转二维码、系统静音、快速关机/重启控制等。👻 隐藏式运行：最新版本支持切换系统托盘图标的显示与隐藏，实现完全的静默运行。🛠️ 安装与构建方式一：直接下载 (推荐)前往 Releases 页面下载最新版本的 HOGN.exe。方式二：源码编译克隆本仓库：git clone https://github.com/XYoung1201/HOG.git使用 Visual Studio 2022 打开 HOGN.sln 解决方案文件。选择 Release 配置并构建。📖 使用指南运行程序：双击启动 HOGN.exe，程序会在系统托盘生成一个图标，并在后台开始监听键盘序列。定位配置文件：HOG 首次运行时，会自动在系统创建配置文件夹与文件：👉 C:\ProgramData\HOG\HOG.conf编辑配置：使用任何文本编辑器打开 HOG.conf，根据你的需求添加或修改热键绑定。生效配置：保存文件后，按下绑定了 CMD:RELOAD 的按键序列（默认可自行定义），配置即可立刻生效。📝 配置文件语法语法格式为：[按键序列] [执行动作] // 注释按键序列：热键由字母 A-Z 组成。可选修饰键：左侧 Ctrl（*），右侧 Ctrl（+）。例如 JFQR 意味着依次按下 J -> F -> Q -> R。执行动作：支持三大类动作前缀：CMD: (内置系统命令)、TEXT: (文本输入) 和 PATH: (路径/程序启动)。// 系统控制与工具
+JFRLD   CMD:RELOAD              // 按下 J-F-R-L-D 重载配置
+JFQT    CMD:QUIT                // 按下 J-F-Q-T 退出工具
+JFQR    CMD:QRCODE              // 按下 J-F-Q-R 显示剪贴板二维码
+JFMU    CMD:MUTE                // 按下 J-F-M-U 切换静音
 
-## How It Works
+// 快捷启动 (使用 PATH: 前缀)
+JFPF    PATH:C:\Program Files   // 打开 Program Files 文件夹
+JFNP    PATH:notepad.exe        // 启动记事本
 
-1. **Global Hooks** – The program installs global keyboard and mouse hooks using
-   the Windows API. When a key sequence matches an entry in the configuration
-   file, the associated action is triggered.
-2. **Configuration Loading** – On start up, HOG creates a folder at
-   `C:\ProgramData\HOG` and loads `HOG.conf`. You may edit this file at any time
-   and reload it with a hotkey so changes apply immediately.
-3. **Built‑in Actions** – Several commands are provided out of the box such as
-   reloading the configuration, quitting the program, generating a QR code from
-   the clipboard or toggling mute.
-4. **Custom Actions** – Besides the built‑in commands, you can open files or
-   folders, launch applications, run scripts, visit URLs or insert predefined
-   text snippets.
-
-Internally the application stays in a loop processing Windows messages while the
-hooks monitor input. When a matching sequence is detected the relevant function
-is executed in the background.
-
-## Building
-
-HOG targets Windows and requires a C++ compiler that supports the Win32 API.
-The easiest way is to open the Visual Studio solution and build the `Release`
-configuration:
-
-```bash
-# from the repository root
-"C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe" HOGN.sln /p:Configuration=Release
-```
-
-The output `HOGN.exe` will appear in the `Release` directory.
-
-## Usage Guide
-
-1. Run `HOGN.exe`. The application places an icon in the system tray and starts
-   listening for key sequences.
-2. Edit the configuration file located at `C:\ProgramData\HOG\HOG.conf`. Each
-   line is a hotkey followed by the action to perform.
-3. Hotkeys consist of letters **A–Z** optionally combined with the left Ctrl
-   (`*`) or right Ctrl (`+`) modifiers. For example `JFQR` means press `J` then
-   `F` then `Q` then `R`.
-4. To reload the file without restarting, press the hotkey bound to
-   `CMD:RELOAD`.
-
-### Configuration Format
-
-```
-JFRLD CMD:RELOAD                   // reload configuration
-JFQT  CMD:QUIT                     // exit the application
-JFQR  CMD:QRCODE                   // show clipboard text as QR code
-JFPF  C:\Program Files             // open a folder
-JFNP  notepad.exe                  // launch Notepad
-JFSM  TEXT:Sample Text             // paste predefined text
-```
-
-Lines beginning with `//` are comments. See `HOG.example.conf` for a full list
-of built‑in commands and detailed examples.
-
-## 中文说明
-
-HOG 是一个 Windows 下的全局热键工具。程序启动后在后台监听键盘输入，
-当按键序列与 `HOG.conf` 中的规则匹配时执行相应动作。配置文件位于
-`C:\ProgramData\HOG\HOG.conf`，可随时编辑并通过热键重新加载。
-
-配置行格式为 `按键序列 操作`，支持打开程序、文件夹、运行脚本或执行
-内置命令等。更多示例请参考仓库中的 `HOG.example.conf`。
+// 快捷短语输入 (使用 TEXT: 前缀)
+JFSM    TEXT:Hello, World!      // 快速输入一长串常用文本
+🔧 工作原理简介 / How It WorksHOG 利用 Windows API 安装了全局键盘与鼠标钩子（Global Hooks）。程序主体是一个持续处理 Windows 消息循环的轻量级后台进程。当它捕获到输入事件时，会实时比对当前的按键历史序列。一旦按键序列与配置文件中的设定完美匹配，HOG 就会拦截该次输入，并在后台触发相应的处理函数（如通过 ShellExecute 启动程序、模拟输入文本等）。📄 License本项目采用开源协议发布，自由使用与修改。欢迎提交 Pull Request 和 Issue！
