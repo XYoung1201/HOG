@@ -12,6 +12,9 @@
 #include <chrono>
 #include <filesystem>
 #include <map>
+#include <thread>
+#include <mutex>
+#include <atomic>
 
 #include "qrcodegen.hpp"
 #include <tchar.h>
@@ -33,13 +36,17 @@
 #include <commdlg.h>
 #include <iostream>
 
+#include <gdiplus.h>
 
 #include <string>
 #include <regex>
 #include <cstdlib> // for std::getenv
 
+#pragma comment(lib, "gdiplus.lib")
+
 #define WM_TRAYICON (WM_USER + 1)
 #define WM_CONFIGMESSAGE (WM_USER + 2)
+#define WM_USER_RELOAD_CONFIG (WM_USER + 3)
 #define IDI_ICON 101
 #define IDI_ICON_GRAY 108
 #define ID_TRAY_EXIT 9001
@@ -100,7 +107,11 @@ NOTIFYICONDATA nid;
 bool listening;
 vector<struct actionRecord> actions;
 bool action_listening;
-bool action_doing;
+std::atomic<bool> action_doing(false);
+std::atomic<bool> action_paused(false);
+HWND g_mainHwnd = NULL;
+std::atomic<bool> g_watching_config(false);
+ULONG_PTR g_gdiplusToken = 0;
 
 std::string config_text = 
 "JFAI SET:TRAYICONENABLE:ON\n"
@@ -122,3 +133,5 @@ std::string config_text =
 void readPara();
 void runCommand(string set);
 void toggleTrayIcon();
+void ShowToastMessage(const std::string& message);
+void clearMem(struct letter* node);
