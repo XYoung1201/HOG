@@ -170,11 +170,41 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Clipboard.cpp" />
+    <ClCompile Include="Command.cpp" />
+    <ClCompile Include="ConfigFile.cpp" />
+    <ClCompile Include="ConfigTrie.cpp" />
+    <ClCompile Include="ConfigWatcher.cpp" />
+    <ClCompile Include="Globals.cpp" />
     <ClCompile Include="HOGN.cpp" />
+    <ClCompile Include="Hooks.cpp" />
+    <ClCompile Include="Macro.cpp" />
+    <ClCompile Include="QrCodeWindow.cpp" />
+    <ClCompile Include="ShellOps.cpp" />
+    <ClCompile Include="SoundControl.cpp" />
+    <ClCompile Include="SystemControl.cpp" />
+    <ClCompile Include="Toast.cpp" />
+    <ClCompile Include="Tray.cpp" />
+    <ClCompile Include="WinUtils.cpp" />
     <ClCompile Include="qrcodegen.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Clipboard.h" />
+    <ClInclude Include="Command.h" />
+    <ClInclude Include="ConfigFile.h" />
+    <ClInclude Include="ConfigTrie.h" />
+    <ClInclude Include="ConfigWatcher.h" />
+    <ClInclude Include="Globals.h" />
     <ClInclude Include="HOGN.h" />
+    <ClInclude Include="Hooks.h" />
+    <ClInclude Include="Macro.h" />
+    <ClInclude Include="QrCodeWindow.h" />
+    <ClInclude Include="ShellOps.h" />
+    <ClInclude Include="SoundControl.h" />
+    <ClInclude Include="SystemControl.h" />
+    <ClInclude Include="Toast.h" />
+    <ClInclude Include="Tray.h" />
+    <ClInclude Include="WinUtils.h" />
     <ClInclude Include="qrcodegen.hpp" />
     <ClInclude Include="resource.h" />
   </ItemGroup>

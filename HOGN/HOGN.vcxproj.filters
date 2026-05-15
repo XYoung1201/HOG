@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="源文件">
@@ -13,10 +13,85 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="源文件\Config">
+      <UniqueIdentifier>{a1d3b5c8-1f1e-4f15-9c01-1f1aa5d2a101}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Hooks">
+      <UniqueIdentifier>{a1d3b5c8-1f1e-4f15-9c01-1f1aa5d2a102}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\UI">
+      <UniqueIdentifier>{a1d3b5c8-1f1e-4f15-9c01-1f1aa5d2a103}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\System">
+      <UniqueIdentifier>{a1d3b5c8-1f1e-4f15-9c01-1f1aa5d2a104}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Core">
+      <UniqueIdentifier>{a1d3b5c8-1f1e-4f15-9c01-1f1aa5d2a105}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Config">
+      <UniqueIdentifier>{b1d3b5c8-1f1e-4f15-9c01-1f1aa5d2a201}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Hooks">
+      <UniqueIdentifier>{b1d3b5c8-1f1e-4f15-9c01-1f1aa5d2a202}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\UI">
+      <UniqueIdentifier>{b1d3b5c8-1f1e-4f15-9c01-1f1aa5d2a203}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\System">
+      <UniqueIdentifier>{b1d3b5c8-1f1e-4f15-9c01-1f1aa5d2a204}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Core">
+      <UniqueIdentifier>{b1d3b5c8-1f1e-4f15-9c01-1f1aa5d2a205}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="HOGN.cpp">
-      <Filter>源文件</Filter>
+      <Filter>源文件\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Globals.cpp">
+      <Filter>源文件\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Command.cpp">
+      <Filter>源文件\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Hooks.cpp">
+      <Filter>源文件\Hooks</Filter>
+    </ClCompile>
+    <ClCompile Include="Macro.cpp">
+      <Filter>源文件\Hooks</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigFile.cpp">
+      <Filter>源文件\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigTrie.cpp">
+      <Filter>源文件\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigWatcher.cpp">
+      <Filter>源文件\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="Toast.cpp">
+      <Filter>源文件\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Tray.cpp">
+      <Filter>源文件\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="QrCodeWindow.cpp">
+      <Filter>源文件\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="WinUtils.cpp">
+      <Filter>源文件\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Clipboard.cpp">
+      <Filter>源文件\System</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundControl.cpp">
+      <Filter>源文件\System</Filter>
+    </ClCompile>
+    <ClCompile Include="SystemControl.cpp">
+      <Filter>源文件\System</Filter>
+    </ClCompile>
+    <ClCompile Include="ShellOps.cpp">
+      <Filter>源文件\System</Filter>
     </ClCompile>
     <ClCompile Include="qrcodegen.cpp">
       <Filter>源文件</Filter>
@@ -24,7 +99,52 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HOGN.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Globals.h">
+      <Filter>头文件\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Command.h">
+      <Filter>头文件\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Hooks.h">
+      <Filter>头文件\Hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="Macro.h">
+      <Filter>头文件\Hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigFile.h">
+      <Filter>头文件\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigTrie.h">
+      <Filter>头文件\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigWatcher.h">
+      <Filter>头文件\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Toast.h">
+      <Filter>头文件\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Tray.h">
+      <Filter>头文件\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="QrCodeWindow.h">
+      <Filter>头文件\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="WinUtils.h">
+      <Filter>头文件\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Clipboard.h">
+      <Filter>头文件\System</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundControl.h">
+      <Filter>头文件\System</Filter>
+    </ClInclude>
+    <ClInclude Include="SystemControl.h">
+      <Filter>头文件\System</Filter>
+    </ClInclude>
+    <ClInclude Include="ShellOps.h">
+      <Filter>头文件\System</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>头文件</Filter>
