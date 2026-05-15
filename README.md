@@ -1,253 +1,497 @@
-## Star History
+# HOG (Hotkey Operated Gear)
 
 [![Star History Chart](https://api.star-history.com/svg?repos=XYoung1201/HOG&type=Timeline)](https://star-history.com/#XYoung1201/HOG&Timeline)
 
-# HOG (Hotkey Operated Gear)
-The Chinese version of the README instructions is located after the English version of the README.
-中文版README说明在英文版README后面
+> 中文版说明在英文版之后。Chinese version follows the English one.
 
-HOG (Hotkey Operated Gear) is a C++ based program that interacts with the Windows clipboard, allowing you to define custom key combinations and assign various actions to them. It runs in the background and listens for specific key sequences to execute corresponding actions. Here are its features and advantages:
+HOG is a lightweight Win32 background utility written in C++. It listens to every keystroke through a low-level keyboard hook and, whenever the recently typed letters match a prefix you defined in a config file, runs an action: type a snippet of text, open a file or URL, launch a program, control system audio, capture/replay a mouse-and-keyboard macro, and more.
 
-1. **Background operation**: HOG runs in the background without interfering with your daily tasks or other applications. This feature allows you to use hotkeys without having to switch between applications or interrupt your workflow.
+It lives in the system tray, never opens a window of its own, and gives feedback through a fading toast notification so it never breaks your flow.
 
-2. **Customizable hotkeys**: The program allows you to create your own hotkey combinations to perform actions such as opening files, launching applications, and opening websites. This customization ability enables you to tailor the hotkey system according to your specific needs and preferences.
+---
 
-3. **Easy-to-edit configuration file**: HOG uses a simple text-based configuration file that is easy to read and modify. You can quickly add or change hotkey combinations and their associated actions by editing this file.
+## Highlights
 
-4. **Supports various action types**: HOG supports a wide range of actions, including system-level configurations, opening system paths or dedicated folders, launching system applications or custom programs, executing logic scripts, opening link addresses, and using text shorthand.
+- **Custom letter-sequence hotkeys.** Hotkeys are short letter sequences (e.g. `JFRLD`, `JFCFG`) rather than chord shortcuts, so they don't clash with system or app shortcuts. Optional `*` / `+` modifiers add left/right `Ctrl`.
+- **Many action types** — type text, run a built-in command, open a file/URL/folder, open a path as admin, or apply a setting.
+- **Macro recording & playback** with a dedicated worker thread, so multi-round repeats stay responsive. Pause / resume / stop hotkeys (`P` / `Q`) work mid-playback. Replay also accepts a repeat count from the clipboard.
+- **Non-blocking toast notifications** — every triggered action surfaces a fading, rounded toast near the bottom of the screen instead of a blocking `MessageBox`.
+- **Live config reload** — after you open the config in your editor, HOG watches the file and automatically reloads when you save.
+- **Clipboard utilities** — generate a QR code from clipboard text, reflow PDF-copied text, paste-and-replace.
+- **System control** — toggle mute, set volume, scheduled shutdown / reboot / cancel, close all File-Explorer windows, etc.
+- **Tray menu** — pause/resume listening, edit/reload/change config, show QR, close directories, quit.
+- **Runs as administrator** — the project is configured to request elevation on launch so it can trigger admin-only actions.
 
-5. **Quickly reloads configurations**: HOG provides a built-in hotkey combination for reloading the configuration file, allowing you to conveniently apply any changes you've made without having to restart the program.
+---
 
-6. **Lightweight and efficient**: The program is designed to be lightweight and efficient, ensuring minimal impact on system resources and overall performance.
+## Quick start
 
-7. **QR code generation**: HOG can convert text from the clipboard into a QR code and display it, providing a unique and convenient feature for quickly sharing information.
+1. Clone the repo.
+2. Open `HOGN/HOGN.vcxproj` in **Visual Studio 2022** (toolset v143 is configured). The `x64` build is the recommended target; both `Win32` and `x64` builds are set up.
+3. Build `Release | x64`.
+4. Run `HOGN.exe`. The HOG icon appears in the system tray; HOG is now listening.
+5. On first launch HOG will create `C:\ProgramData\HOG\` and ask whether to use the default config path or pick a custom one. After that it opens the config in your default editor — edit it, save, and the new bindings take effect automatically.
 
-By offering these features and advantages, HOG can help increase your productivity and make common tasks more convenient and efficient through the use of custom hotkey combinations.
+---
 
-## Features
+## Configuration file
 
-1. Perform actions based on keyboard input, such as opening files, folders, and applications.
-2. Implement corresponding features through specific hotkey combinations.
-3. Generate QR codes based on clipboard content.
-4. Implement quick text input in any text box as needed.
+The config file lives at `C:\ProgramData\HOG\HOG.conf` by default. You can move it via the tray's **Change Config** menu or by binding `CMD:CHANGECONF`. The location HOG actually uses is recorded in `C:\ProgramData\HOG\config`.
 
-## How to use
-
-1. Clone or download this repository.
-2. Compile the source code in a Windows environment using a C++-compatible compiler.
-3. Run HOGN.exe, and the program will begin listening for keyboard input.
-4. Operate according to the hotkey combinations defined in the configuration file.
-
-## How to implement functions
-
-After editing and saving the configuration file, pressing the specified hotkey combination will execute the corresponding action. For example, in the above example, pressing the `J`, `F`, `S`, `M` keys will paste "Sample Text" at the current cursor position.
-
-Please note that when using hotkey combinations, avoid combinations that conflict with existing shortcuts in the operating system or other applications. To prevent conflicts, use unique hotkey combinations as much as possible.
-
-## Detailed explanation of the configuration file
-
-The configuration file is located at `C:\ProgramData\HOG\HOG.conf`. In this file, you can customize hotkey combinations (including the 26 letters on the keyboard and the left and right CTRL keys; when writing rules, the left CTRL is represented by `*`, and the right CTRL is represented by `+`) and corresponding actions. For example, you can define hotkey combinations to open specific files or folders or generate QR codes. The configuration file uses a simple text format and defines actions line by line. The configuration file (`C:\ProgramData\HOG\HOG.conf`) contains user-defined hotkey combinations and their corresponding actions. These combinations are represented in a simple text format, with each line representing one action.
-
-In the file, you can add several types of actions:
-
-1. Built-in functions
-2. System paths
-3. Dedicated folders
-4. System applications
-5. Custom applications
-6. Logic scripts
-7. Link addresses
-8. Text shorthand
-
-## How to configure the file
-
-The configuration file can be edited using any text editor (such as Notepad). Follow these steps to configure the file:
-
-1. Open a text editor, such as Notepad.
-2. Open the `C:\ProgramData\HOG\HOG.conf` configuration file (or press `JFCFG` to open the configuration file).
-3. Edit or add new hotkey combinations and actions, ensuring that there is a space between each combination and action.
-4. Use `//` to add comments line by line to explain the function of each action.
-5. Save and close the configuration file.
-6. Use the predefined "reload" hotkey (in the example above, it is `JFRLD`) to reload the configuration file, or restart the program to apply the changes.
-
-## Configuration file example
-
-Here's a simple configuration file example: (For a detailed example of a configuration file, please refer to the HOG.example.conf file in the project, which includes all the built-in functions and their descriptions.)
+### Line format
 
 ```
-// System-level configuration
+<HOTKEY> <ACTION>
+```
+
+- `HOTKEY` is one or more uppercase letters `A`–`Z`, optionally prefixed with `*` (left `Ctrl`) and/or `+` (right `Ctrl`).
+- `ACTION` is one of the action prefixes below.
+- Lines beginning with `//` are comments and are skipped. Blank lines are skipped.
+
+Examples:
+
+```text
+JFRLD CMD:RELOAD                            // sequence J F R L D triggers a reload
+*JFYX TEXT:aaaa@gmail.com                   // hold LCtrl, then type J F Y X to paste an email
+*+    PATH:C:\Program Files\Everything\Everything.exe   // LCtrl + RCtrl by themselves
+```
+
+### Action prefixes
+
+| Prefix    | Effect                                                          |
+|-----------|-----------------------------------------------------------------|
+| `CMD:`    | Run a built-in command (see table below).                        |
+| `TEXT:`   | Type the literal text via simulated keystrokes.                  |
+| `PATH:`   | Open the target with the shell (`ShellExecute`) — files, folders, URLs, even `SHELL:` aliases (e.g. `SHELL:RecycleBinFolder`). Environment variables like `%USERPROFILE%` are expanded. |
+| `PATH_A:` | Same as `PATH:` but launches with the `runas` verb (elevation prompt). |
+| `SET:`    | Apply a runtime setting. Currently supported: `SET:TRAYICONENABLE:ON`/`:OFF`. |
+
+### Built-in commands (`CMD:`)
+
+| Command                  | What it does                                                                                  |
+|--------------------------|-----------------------------------------------------------------------------------------------|
+| `RELOAD`                 | Reload the config file.                                                                       |
+| `CONFIG`                 | Open the config in your default editor; HOG auto-reloads when you save.                       |
+| `CHANGECONF`             | Pick a new config file path and reload.                                                       |
+| `QUIT`                   | Ask for confirmation then exit HOG.                                                           |
+| `ONOFFHOGTOGGLE`         | Pause/resume the keyboard listener (works even while paused).                                 |
+| `QRCODE`                 | Show a popup containing a QR code of the current clipboard text.                              |
+| `MUTETOGGLE`             | Toggle system mute.                                                                           |
+| `SHUTDOWN`               | Schedule a shutdown in 20 s.                                                                  |
+| `REBOOT`                 | Schedule a reboot in 20 s.                                                                    |
+| `CANCELSHUTDOWNORREBOOT` | Cancel a pending shutdown/reboot.                                                             |
+| `CLOSEALLDIRECTORIES`    | Close every open File-Explorer window.                                                        |
+| `CLOSETHISWINDOW`        | Send `WM_CLOSE` to the current foreground window.                                             |
+| `GOOGLESEARCH`           | Open `https://google.com/search?q=<clipboard>` in your default browser.                       |
+| `COPYPDFTEXT`            | Reflow text on the clipboard that was copied from a PDF (joins broken lines, collapses spaces) and put it back on the clipboard. |
+| `OPENCMDINCURRENTPATH`   | Reserved (stub).                                                                              |
+| `RECORD`                 | Start/stop recording a keyboard + mouse macro.                                                |
+| `ACTION`                 | Replay the recorded macro. The clipboard is read as the repeat count (1 if it isn't a number). |
+| `ACTIONSTOP`             | Stop the currently playing macro.                                                             |
+| `ACTIONPAUSE`            | Pause the currently playing macro.                                                            |
+| `ACTIONRESUME`           | Resume a paused macro.                                                                        |
+| `ACTIONPAUSETOGGLE`      | Toggle pause/resume on the currently playing macro.                                           |
+
+### Settings (`SET:`)
+
+| Setting             | Values        | Effect                                              |
+|---------------------|---------------|-----------------------------------------------------|
+| `TRAYICONENABLE`    | `ON` / `OFF`  | Show or hide the tray icon. `ON` is the default.    |
+
+---
+
+## Macros — recording and playback
+
+1. Bind two hotkeys in your config:
+   ```text
+   JFMR CMD:RECORD     // press once to start recording, press again to stop
+   JFMP CMD:ACTION     // replay the recorded macro
+   ```
+2. Trigger `JFMR` to start recording — a toast confirms. Move the mouse and type as normal; HOG captures every key and click.
+3. Trigger `JFMR` again to stop. Consecutive mouse-move events are coalesced into one record so playback isn't bogged down by intermediate cursor samples.
+4. Optionally put a number on your clipboard (e.g. `5`) — `ACTION` reads it as the repeat count.
+5. Trigger `JFMP`. Playback runs in a background thread.
+
+While a macro is playing you can press these **hardware keys** (they only react during playback, and they ignore HOG's own synthesized input):
+
+| Key | Effect                |
+|-----|-----------------------|
+| `Q` | Stop the playback.    |
+| `P` | Pause / resume.       |
+
+You can also bind any of `CMD:ACTIONSTOP`, `CMD:ACTIONPAUSE`, `CMD:ACTIONRESUME`, `CMD:ACTIONPAUSETOGGLE` to your own hotkeys (e.g. through the tray menu — see below).
+
+### Conflict rules
+
+- Recording is blocked while a macro is playing.
+- Playback is blocked while a macro is recording.
+- Events synthesized by HOG itself (`SendInput`) are filtered from the recording stream so replaying a macro while recording can't create a feedback loop.
+
+---
+
+## Tray icon
+
+- **Left-click**: open the default config file.
+- **Right-click**: a popup menu with:
+  - **Stop / Start Listening** — pause or resume the global hook.
+  - **Edit Config** — open the active config file (and start the auto-reload watcher).
+  - **Reload Config** — re-parse the config without opening an editor.
+  - **Change Config** — pick a different config file path.
+  - **Show Clipboard QRcode** — same as `CMD:QRCODE`.
+  - **Close all Directories** — same as `CMD:CLOSEALLDIRECTORIES`.
+  - **Exit** — confirm and quit.
+
+---
+
+## Toast notifications
+
+Every triggered action shows a small rounded, semi-transparent toast at the bottom-centre of the screen. It fades in (~180 ms), holds (~1.8 s), and fades out (~420 ms). Rapid actions reuse the same window and reset the animation — newest message replaces previous.
+
+Examples of messages you'll see:
+
+- `Reloaded config`
+- `Config opened`
+- `Macro recording started` / `Macro recording stopped`
+- `Macro playback started` / `paused` / `resumed` / `stopped` / `finished`
+- `Triggered: text input`
+- `Opening: C:\Program Files`
+- `Opening (admin): C:\Path\To\App.exe`
+
+---
+
+## Example config
+
+A complete example with comments lives in [`HOG.example.conf`](HOG.example.conf). A condensed version:
+
+```text
+// ----- Tray + built-in toggles -----
+JFAI   SET:TRAYICONENABLE:ON
+JFHSWT CMD:ONOFFHOGTOGGLE
+
+// ----- Built-in commands -----
 JFRLD CMD:RELOAD
-JFQT CMD:QUIT
+JFQT  CMD:QUIT
+JFQR  CMD:QRCODE
 JFCFG CMD:CONFIG
-JFQR CMD:QRCODE
 JFCAD CMD:CLOSEALLDIRECTORIES
-JFMT CMD:MUTEREVERSE
+JFMTT CMD:MUTETOGGLE
+JFSD  CMD:SHUTDOWN
+JFRB  CMD:REBOOT
+JFCLSD CMD:CANCELSHUTDOWNORREBOOT
+JFSCH CMD:GOOGLESEARCH
 
-// System paths
-JFPF C:\Program Files
+// ----- Macros -----
+JFMR  CMD:RECORD
+JFMP  CMD:ACTION
+JFMS  CMD:ACTIONSTOP
+JFMPP CMD:ACTIONPAUSETOGGLE
 
-// Dedicated folders
-JFDW C:\Users\YourUsername\Documents\Work
+// ----- Paths / launchers -----
+JFETC PATH:C:\Windows\System32\drivers\etc
+JFHSZ PATH:SHELL:RecycleBinFolder
+JFMD  PATH:C:\Windows\System32\cmd.exe
+JFTSK PATH:C:\Windows\System32\taskmgr.exe
+JFCM  PATH:C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe
 
-// System applications
-JFNP notepad.exe
+// ----- Run elevated -----
+JFXTOOL PATH_A:C:\Tools\admin-only.exe
 
-// Custom applications
-JFCH C:\Program Files\Google\Chrome\Application\chrome.exe
+// ----- URLs -----
+JFGML PATH:https://mail.google.com
+JFGPT PATH:https://chat.openai.com/chat
 
-// Logic scripts
-JFTS C:\Scripts\test_script.bat
-
-// Link addresses
-JFGH https://github.com
-
-// Text shorthand
-JFSM TEXT:Sample Text
+// ----- Text snippets (LCtrl + JFYX) -----
+*JFYX TEXT:aaaa@gmail.com
 ```
 
-- `JFRLD CMD:RELOAD`: When pressing `J`, `F`, `R`, `L`, `D` keys, reload the configuration file.
+---
 
-- `JFQT CMD:QUIT`: When pressing `J`, `F`, `Q`, `T` keys, exit the program.
+## Building from source
 
-- `JFCFG CMD:CONFIG`: When pressing `J`, `F`, `C`, `F`, `G` keys, open the configuration file.
+- **Toolchain**: Visual Studio 2022 (v143). x64 builds use `/std:c++20`; the Win32 builds compile with the toolset's default standard and rely only on features that are available there.
+- **Dependencies**: only the Windows SDK and GDI+ (linked via `#pragma comment(lib, "gdiplus.lib")`). No vcpkg/Conan/Nuget packages.
+- **Output**: `HOGN.exe`. The project's manifest requests administrator elevation; you'll see the UAC prompt on first launch.
 
-- `JFQR CMD:QRCODE`: When pressing `J`, `F`, `Q`, `R` keys, convert the text in the clipboard to a QR code and display it.
+---
 
-- `JFCAD CMD:CLOSEALLDIRECTORIES`: When pressing `J`, `F`, `C`, `A`, `D` keys, close all opening directories.
+## Project layout
 
-- `JFMT CMD:MUTEREVERSE`: When pressing `J`, `F`, `M`, `T` keys, change the system's mute state.
+The code is split across small, focused translation units under [`HOGN/`](HOGN/):
 
-- `JFPF C:\Program Files`: When pressing `J`, `F`, `P`, `F` keys, open the `C:\Program Files` folder.
+| File                                                    | Responsibility                                                                 |
+|---------------------------------------------------------|--------------------------------------------------------------------------------|
+| [`HOGN.cpp`](HOGN/HOGN.cpp)                             | `main()` — installs hooks, runs the message pump.                              |
+| [`HOGN.h`](HOGN/HOGN.h)                                 | Project-wide includes, types (`letter`, `actionRecord`), message ids.          |
+| [`Globals.{h,cpp}`](HOGN/Globals.h)                     | Global state (`extern` decls + single definitions).                            |
+| [`Hooks.cpp`](HOGN/Hooks.cpp)                           | Low-level keyboard / mouse hook callbacks.                                     |
+| [`Macro.cpp`](HOGN/Macro.cpp)                           | Record + threaded playback.                                                    |
+| [`ConfigFile.cpp`](HOGN/ConfigFile.cpp)                 | First-run setup, file I/O, save-dialog.                                        |
+| [`ConfigTrie.cpp`](HOGN/ConfigTrie.cpp)                 | Build and walk the hotkey prefix trie.                                         |
+| [`ConfigWatcher.cpp`](HOGN/ConfigWatcher.cpp)           | Post-edit auto-reload watcher.                                                 |
+| [`Command.cpp`](HOGN/Command.cpp)                       | `runCommand` (O(1) command dispatch) and `excuteTar`.                          |
+| [`Toast.cpp`](HOGN/Toast.cpp)                           | Layered, rounded toast notification.                                           |
+| [`Tray.cpp`](HOGN/Tray.cpp)                             | Hidden main window, tray icon, popup menu.                                     |
+| [`QrCodeWindow.cpp`](HOGN/QrCodeWindow.cpp)             | Clipboard-text → QR popup.                                                     |
+| [`WinUtils.cpp`](HOGN/WinUtils.cpp)                     | DPI, foreground-class check, text drawing helpers.                             |
+| [`Clipboard.cpp`](HOGN/Clipboard.cpp)                   | Clipboard ops + keystroke simulation.                                          |
+| [`SoundControl.cpp`](HOGN/SoundControl.cpp)             | Volume / mute (`IAudioEndpointVolume`).                                        |
+| [`SystemControl.cpp`](HOGN/SystemControl.cpp)           | Shutdown / reboot / privileges.                                                |
+| [`ShellOps.cpp`](HOGN/ShellOps.cpp)                     | `openTar`, env-var substitution, explorer enumeration.                         |
 
-- `JFDW C:\Users\YourUsername\Documents\Work`: When pressing `J`, `F`, `D`, `W` keys, open the `C:\Users\YourUsername\Documents\Work` folder.
+---
 
-- `JFNP notepad.exe`: When pressing `J`, `F`, `N`, `P` keys, launch the Notepad program.
+## Tips & caveats
 
-- `JFCH C:\Program Files\Google\Chrome\Application\chrome.exe`: When pressing `J`, `F`, `C`, `H` keys, launch Google Chrome.
+- **Pick unusual sequences.** Because HOG matches everything you type, choose hotkeys like `JF…` that you'd never type in normal English. The leading letters in the example config are all `JF` for this reason.
+- **Backspace cleanup.** When a hotkey fires HOG sends backspaces to delete the letters you just typed, so the trigger leaves no trace in the text field. This is disabled when the foreground window is a File Explorer (where backspace navigates up).
+- **One key sequence per binding.** The prefix tree means `JFCFG` and `JFCFGX` can both exist; HOG fires the longest match that completes when you release a key with no further continuation.
+- **Modifier keys.** `*` requires left-`Ctrl`, `+` requires right-`Ctrl`. They appear in the sequence (e.g. `*JFYX`); other modifiers (Shift, Alt, Win) are not part of the trie syntax.
+- **Clipboard repeat count.** `CMD:ACTION` reads the clipboard for the number of repetitions. Put `5` on the clipboard to run 5 rounds; non-numeric clipboard = 1 round.
 
-- `JFTS C:\Scripts\test_script.bat`: When pressing `J`, `F`, `T`, `S` keys, execute the batch script `C:\Scripts\test_script.bat`.
+---
 
-- `JFGH https://github.com`: When pressing `J`, `F`, `G`, `H` keys, open the `https://github.com` website using the default browser.
+# HOG（Hotkey Operated Gear，中文版）
 
-- `JFSM TEXT:Sample Text`: When pressing `J`, `F`, `S`, `M` keys, paste "Sample Text" at the current cursor position.
+HOG 是一个用 C++ 编写的、运行于 Windows 后台的轻量级工具。它通过全局低级键盘钩子监听每一次按键，当你最近输入的字母与配置文件里定义的某条前缀匹配时，就触发对应的操作：写入文本片段、打开文件 / URL / 文件夹、启动应用、控制系统音量、录制并回放鼠标键盘宏，等等。
 
-  After defining these actions in the configuration file, HOG will execute the corresponding actions when the specified hotkey combinations are pressed. Keep in mind to avoid conflicts with existing shortcuts in the operating system or other applications. Always try to use unique hotkey combinations to prevent any issues.
+HOG 常驻系统托盘，不会主动弹窗，所有反馈都通过一个淡入淡出的提示条 (toast) 呈现，不打断你的工作流。
 
-  Now you have a better understanding of the HOG (Hotkey Operated Gear) program, its features, and how to configure and use it. By leveraging custom hotkey combinations, you can streamline your daily tasks, improve your productivity, and make your workflow more efficient.
+---
 
-# HOG（Hotkey Operated Gear）
+## 主要特性
 
-HOG（Hotkey Operated Gear）是一个用C++编写的程序，它可以与Windows剪贴板交互，让您定义自定义热键组合并分配各种操作。它在后台运行，监听特定的按键序列以执行相应的操作。以下是它的特点和优点：
+- **按字母序列触发的快捷键**。不同于 `Ctrl+Shift+X` 这种组合键，HOG 的快捷键是诸如 `JFRLD`、`JFCFG` 这样的字母序列，不会与系统或其他软件冲突。可选用 `*` / `+` 作为左 / 右 `Ctrl` 前缀。
+- **多种操作类型**：输入文字、执行内置命令、打开文件 / URL / 文件夹、以管理员身份打开、应用运行时设置。
+- **宏录制与回放**，回放在独立线程中执行，多轮重复时也能即时响应暂停 / 停止热键（`P` / `Q`）。`ACTION` 还会读取剪贴板里的数字作为重复次数。
+- **非阻塞 Toast 通知** —— 所有触发的动作都会通过底部居中的淡入淡出提示条反馈，不再使用阻塞式 `MessageBox`。
+- **配置文件自动重载** —— 一旦你通过 HOG 打开配置文件，HOG 会监听该文件，保存后自动重载。
+- **剪贴板工具**：将剪贴板文字生成二维码、整理 PDF 复制的换行文本、剪贴板内容粘贴。
+- **系统控制**：静音切换、定时关机 / 重启 / 取消、关闭所有资源管理器窗口等。
+- **托盘菜单**：暂停 / 恢复监听、编辑 / 重载 / 切换配置文件、显示二维码、关闭所有目录、退出。
+- **请求管理员权限运行**：工程默认在启动时申请管理员权限，便于触发需要提权的操作。
 
-1. **后台运行**：HOG在后台运行，不会干扰您的日常任务或其他应用程序。这个特点让您可以使用热键，而无需在应用程序之间切换或中断您的工作流程。
+---
 
-2. **自定义热键**：该程序允许您创建自己的热键组合，以执行打开文件、启动应用程序、打开网站等操作。这种定制能力使您能够根据自己的具体需求和喜好定制热键系统。
+## 快速上手
 
-3. **易于编辑的配置文件**：HOG使用一个简单的基于文本的配置文件，易于阅读和修改。您可以通过编辑此文件快速添加或更改热键组合及其关联的操作。
+1. 克隆本仓库。
+2. 在 **Visual Studio 2022**（工具集 v143）中打开 `HOGN/HOGN.vcxproj`。推荐 `x64` 配置（`Win32` 也可用）。
+3. 选择 `Release | x64` 构建。
+4. 运行 `HOGN.exe`，托盘图标出现，HOG 开始监听。
+5. 首次运行时 HOG 会创建 `C:\ProgramData\HOG\` 并询问使用默认配置路径还是自选路径。随后会自动打开配置文件等你编辑；保存后新配置自动生效。
 
-4. **支持多种操作类型**：HOG支持广泛的操作，包括系统级配置、打开系统路径或专用文件夹、启动系统应用程序或自定义程序、执行逻辑脚本、打开链接地址以及使用文本速记。
+---
 
-5. **快速重新加载配置**：HOG提供了一个内置的热键组合，用于重新加载配置文件，使您可以方便地应用所做的任何更改，而无需重新启动程序。
+## 配置文件
 
-6. **轻量级和高效**：该程序设计为轻量级和高效，确保对系统资源和整体性能的影响最小。
+默认路径 `C:\ProgramData\HOG\HOG.conf`。你可以通过托盘菜单的 **Change Config** 或 `CMD:CHANGECONF` 切换；HOG 当前使用的配置路径会写在 `C:\ProgramData\HOG\config` 里。
 
-7. **二维码生成**：HOG可以将剪贴板中的文本转换为二维码并显示，为快速分享信息提供了一种独特且方便的功能。
-
-通过提供这些特点和优点，HOG可以帮助提高您的生产力，使常见任务通过使用自定义热键组合变得更加方便和高效。
-
-## 功能
-
-1. 根据键盘输入执行操作，如打开文件、文件夹和应用程序。
-2. 通过特定快捷键组合实现相应功能。
-3. 根据剪贴板内容生成二维码。
-4. 根据需要在任意文本框内实现文本快速输入。
-
-## 如何使用
-
-1. 克隆或下载此仓库。
-2. 在Windows环境下使用支持C++的编译器编译源代码。
-3. 运行HOG.exe，程序将开始监听键盘输入。
-4. 按照配置文件中定义的快捷键组合进行操作。
-
-## 如何实现功能
-
-在编辑和保存配置文件后，按下指定的快捷键组合，程序将执行对应的操作。例如，在上述示例中，按下`J`, `F`, `S`, `M`键将在当前光标位置粘贴“Sample Text”。
-
-请注意，在使用快捷键组合时，避免使用与操作系统或其他应用程序中的现有快捷键冲突的组合。为了防止冲突，请尽量使用独特的快捷键组合。
-
-## 配置文件详解
-
-配置文件位于`C:\ProgramData\HOG\HOG.conf`。在此文件中，您可以自定义快捷键组合（包括键盘上26个字母以及左右CTRL键，在编写规则时左CTRL用`*`代替，右CTRL用`+`代替）以及对应的操作。例如，可以定义打开特定文件或文件夹的快捷键组合，或生成二维码。配置文件使用简单的文本格式，并以行为单位定义操作。配置文件（`C:\ProgramData\HOG\HOG.conf`）包含了用户自定义的快捷键组合及对应的操作。这些组合通过简单的文本格式表示，每行代表一个操作。
-
-文件中，可以添加以下几种类型的操作：
-
-1. 内置功能
-2. 系统路径
-3. 专用文件夹
-4. 系统应用
-5. 应用程序
-6. 逻辑脚本
-7. 链接地址
-8. 文本速写
-
-## 如何配置文件
-
-配置文件可以通过任何文本编辑器（例如Notepad）进行编辑。按照以下步骤配置文件：
-
-1. 打开文本编辑器，如Notepad。
-2. 打开`C:\ProgramData\HOG\HOG.conf`配置文件（或者按`JFCFG`唤出配置文件）。
-3. 编辑或添加新的快捷键组合和操作，确保每个组合与操作之间用空格隔开。
-4. 使用`//`按行添加注释以解释每个操作的功能。
-5. 保存并关闭配置文件。
-6. 使用预定义的“重新加载”快捷键（在上述示例中为`JFRLD`）重新加载配置文件，或者重启程序以应用更改。
-
-## 配置文件示例
-
-以下是一个简单的配置文件示例：（详细的配置文件范例可参考项目内的HOG.example.conf文件，包括所有的内置功能及其说明）
+### 行格式
 
 ```
-// 系统级配置
+<快捷键> <动作>
+```
+
+- `快捷键`：大写字母 `A`–`Z` 组成的序列，可在最前方加 `*`（左 `Ctrl`）和/或 `+`（右 `Ctrl`）。
+- `动作`：见下文的动作前缀。
+- 以 `//` 开头的行视为注释；空行被忽略。
+
+例：
+
+```text
+JFRLD CMD:RELOAD                                          // 按 J F R L D 重载配置
+*JFYX TEXT:aaaa@gmail.com                                 // 按住左 Ctrl，再按 J F Y X 输入邮箱
+*+    PATH:C:\Program Files\Everything\Everything.exe     // 同时按住左右 Ctrl
+```
+
+### 动作前缀
+
+| 前缀       | 作用                                                                 |
+|------------|--------------------------------------------------------------------|
+| `CMD:`     | 执行下表的内置命令。                                                  |
+| `TEXT:`    | 通过模拟按键输入这段文字。                                            |
+| `PATH:`    | 用 `ShellExecute` 打开目标：文件、文件夹、URL、`SHELL:` 别名都行。会自动展开 `%VAR%` 形式的环境变量。 |
+| `PATH_A:`  | 与 `PATH:` 相同，但使用 `runas` 动词（弹出提权 UAC）。                |
+| `SET:`     | 运行时设置。目前支持 `SET:TRAYICONENABLE:ON`/`:OFF`。                  |
+
+### 内置命令（`CMD:`）
+
+| 命令                       | 作用                                                                                |
+|----------------------------|------------------------------------------------------------------------------------|
+| `RELOAD`                   | 重新加载配置。                                                                      |
+| `CONFIG`                   | 在默认编辑器中打开配置；保存后 HOG 自动重载。                                          |
+| `CHANGECONF`               | 选择新的配置文件路径并重载。                                                          |
+| `QUIT`                     | 弹出确认后退出 HOG。                                                                 |
+| `ONOFFHOGTOGGLE`           | 暂停 / 恢复键盘监听（即使处于暂停状态也能用）。                                       |
+| `QRCODE`                   | 把剪贴板里的文字生成二维码弹窗展示。                                                  |
+| `MUTETOGGLE`               | 切换系统静音。                                                                      |
+| `SHUTDOWN`                 | 20 秒后关机。                                                                       |
+| `REBOOT`                   | 20 秒后重启。                                                                       |
+| `CANCELSHUTDOWNORREBOOT`   | 取消已经计划的关机 / 重启。                                                          |
+| `CLOSEALLDIRECTORIES`      | 关闭所有打开的资源管理器窗口。                                                        |
+| `CLOSETHISWINDOW`          | 向前台窗口发送 `WM_CLOSE`。                                                          |
+| `GOOGLESEARCH`             | 在默认浏览器中打开 `https://google.com/search?q=<剪贴板>`。                          |
+| `COPYPDFTEXT`              | 整理剪贴板中从 PDF 复制的文本（合并断行、压缩多余空白），结果写回剪贴板。               |
+| `OPENCMDINCURRENTPATH`     | 预留（占位实现）。                                                                  |
+| `RECORD`                   | 开始 / 停止录制鼠标和键盘宏。                                                        |
+| `ACTION`                   | 回放刚录制的宏。剪贴板中如果是纯数字，则被解释为重复次数（否则按 1 次执行）。           |
+| `ACTIONSTOP`               | 停止正在播放的宏。                                                                  |
+| `ACTIONPAUSE`              | 暂停正在播放的宏。                                                                  |
+| `ACTIONRESUME`             | 恢复被暂停的宏。                                                                    |
+| `ACTIONPAUSETOGGLE`        | 在暂停 / 恢复之间切换。                                                              |
+
+### 设置（`SET:`）
+
+| 设置项             | 取值          | 作用                              |
+|------------------|--------------|---------------------------------|
+| `TRAYICONENABLE` | `ON` / `OFF` | 显示或隐藏托盘图标。默认 `ON`。      |
+
+---
+
+## 宏的录制与回放
+
+1. 在配置里绑定两条快捷键：
+   ```text
+   JFMR CMD:RECORD     // 第一次按开始录制，再按一次结束
+   JFMP CMD:ACTION     // 回放刚录制的宏
+   ```
+2. 按 `JFMR`，提示条会确认开始录制。期间正常用鼠标和键盘即可，HOG 会捕获每一次按键和点击。
+3. 再次按 `JFMR` 结束录制。连续的鼠标移动会被自动合并为一条记录，避免回放时被中间帧拖慢。
+4. （可选）把一个数字（例如 `5`）复制到剪贴板，`ACTION` 会把它当作重复次数。
+5. 按 `JFMP` 开始回放，回放运行在独立线程，不阻塞钩子。
+
+回放期间，下面这些**真实物理键**会被识别（仅在播放中生效，并且会过滤 HOG 自己合成的按键）：
+
+| 按键 | 作用              |
+|----|------------------|
+| `Q` | 停止回放。           |
+| `P` | 暂停 / 恢复。         |
+
+你也可以把 `CMD:ACTIONSTOP`、`CMD:ACTIONPAUSE`、`CMD:ACTIONRESUME`、`CMD:ACTIONPAUSETOGGLE` 绑到你喜欢的快捷键上。
+
+### 互斥规则
+
+- 录制期间禁止启动回放。
+- 回放期间禁止启动录制。
+- HOG 自己合成的按键（`SendInput`）会从录制流中过滤掉，避免"边录边放"形成无限循环。
+
+---
+
+## 托盘图标
+
+- **左键单击**：打开默认配置文件。
+- **右键单击**：弹出菜单，包括：
+  - **Stop / Start Listening**：暂停或恢复键盘监听。
+  - **Edit Config**：打开当前配置文件并启动自动重载监听。
+  - **Reload Config**：直接重新加载配置文件。
+  - **Change Config**：切换到另一个配置文件路径。
+  - **Show Clipboard QRcode**：等同 `CMD:QRCODE`。
+  - **Close all Directories**：等同 `CMD:CLOSEALLDIRECTORIES`。
+  - **Exit**：确认后退出。
+
+---
+
+## Toast 通知
+
+每次触发动作，屏幕底部居中会出现一条圆角半透明的小条幅，约 180 ms 淡入、停留 1.8 s、420 ms 淡出。快速连续触发时复用同一个窗口、重置动画——后到的消息会替换前一个。
+
+你会看到的提示包括：
+
+- `Reloaded config`
+- `Config opened`
+- `Macro recording started` / `Macro recording stopped`
+- `Macro playback started` / `paused` / `resumed` / `stopped` / `finished`
+- `Triggered: text input`
+- `Opening: C:\Program Files`
+- `Opening (admin): C:\Path\To\App.exe`
+
+---
+
+## 配置示例
+
+完整带注释的示例在仓库内 [`HOG.example.conf`](HOG.example.conf)。下面是一个简化版：
+
+```text
+// ----- 托盘 / 内置开关 -----
+JFAI   SET:TRAYICONENABLE:ON
+JFHSWT CMD:ONOFFHOGTOGGLE
+
+// ----- 内置命令 -----
 JFRLD CMD:RELOAD
-JFQT CMD:QUIT
+JFQT  CMD:QUIT
+JFQR  CMD:QRCODE
 JFCFG CMD:CONFIG
-JFQR CMD:QRCODE
 JFCAD CMD:CLOSEALLDIRECTORIES
-JFMT CMD:MUTEREVERSE
+JFMTT CMD:MUTETOGGLE
+JFSD  CMD:SHUTDOWN
+JFRB  CMD:REBOOT
+JFCLSD CMD:CANCELSHUTDOWNORREBOOT
+JFSCH CMD:GOOGLESEARCH
 
-// 系统路径
-JFPF C:\Program Files
+// ----- 宏 -----
+JFMR  CMD:RECORD
+JFMP  CMD:ACTION
+JFMS  CMD:ACTIONSTOP
+JFMPP CMD:ACTIONPAUSETOGGLE
 
-// 专用文件夹
-JFDW C:\Users\YourUsername\Documents\Work
+// ----- 路径 / 启动器 -----
+JFETC PATH:C:\Windows\System32\drivers\etc
+JFHSZ PATH:SHELL:RecycleBinFolder
+JFMD  PATH:C:\Windows\System32\cmd.exe
+JFTSK PATH:C:\Windows\System32\taskmgr.exe
+JFCM  PATH:C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe
 
-// 系统应用
-JFNP notepad.exe
+// ----- 提权运行 -----
+JFXTOOL PATH_A:C:\Tools\admin-only.exe
 
-// 应用程序
-JFCH C:\Program Files\Google\Chrome\Application\chrome.exe
+// ----- 网址 -----
+JFGML PATH:https://mail.google.com
+JFGPT PATH:https://chat.openai.com/chat
 
-// 逻辑脚本
-JFTS C:\Scripts\test_script.bat
-
-// 链接地址
-JFGH https://github.com
-
-// 文本速写
-JFSM TEXT:Sample Text
+// ----- 文本片段（左 Ctrl + JFYX） -----
+*JFYX TEXT:aaaa@gmail.com
 ```
 
-- `JFRLD CMD:RELOAD`：当按下`J`, `F`, `R`, `L`, `D`键时，重新加载配置文件。
-- `JFQT CMD:QUIT`：当按下`J`, `F`, `Q`, `T`键时，退出程序。
-- `JFCAD CMD:CLOSEALLDIRECTORIES`: 当按下`J`, `F`, `C`, `A`, `D`键时, 关闭所有打开的文件夹。
-- `JFMT CMD:MUTEREVERSE`: 当按下`J`, `F`, `M`, `T`键时, 反转静音或者非静音状态。
-- `JFCFG CMD:CONFIG`：当按下`J`, `F`, `C`, `F`, `G`键时，打开配置文件。
-- `JFQR CMD:QRCODE`：当按下`J`, `F`, `Q`, `R`键时，将剪贴板中的文本转换为QR码并显示。
-- `JFPF C:\Program Files`：当按下`J`, `F`, `P`, `F`键时，打开`C:\Program Files`文件夹。
-- `JFDW C:\Users\YourUsername\Documents\Work`：当按下`J`, `F`, `D`, `W`键时，打开`C:\Users\YourUsername\Documents\Work`文件夹。
-- `JFNP notepad.exe`：当按下`J`, `F`, `N`, `P`键时，启动记事本程序。
-- `JFCH C:\Program Files\Google\Chrome\Application\chrome.exe`：当按下`J`, `F`, `C`, `H`键时，启动谷歌浏览器。
-- `JFTS C:\Scripts\test_script.bat`：当按下`J`, `F`, `T`, `S`键时，运行批处理脚本`C:\Scripts\test_script.bat`。
-- `JFGH https://github.com`：当按下`J`, `F`, `G`, `H`键时，使用默认浏览器打开`https://github.com`网址。
-- `JFSM TEXT:Sample Text`：当按下`J`, `F`, `S`, `M`键时，将“Sample Text”粘贴到当前光标位置。
+---
 
-通过以上示例，您可以了解如何在配置文件中自定义快捷键组合和操作。请确保遵循配置文件中的格式，并使用空格分隔每个快捷键组合和操作。您可以随时根据自己的需求和喜好修改配置文件，从而使HOG提供更个性化的功能。记得在修改配置文件后，使用预定义的“重新加载”快捷键或重启程序以应用更改。
+## 从源码构建
+
+- **工具链**：Visual Studio 2022（v143）。x64 配置使用 `/std:c++20`；Win32 配置使用工具集默认标准，代码已避免使用其不支持的特性。
+- **依赖**：仅 Windows SDK 和 GDI+（已通过 `#pragma comment(lib, "gdiplus.lib")` 静态引入），无需 vcpkg / Conan / NuGet。
+- **产物**：`HOGN.exe`。清单已请求管理员权限，首次运行会出现 UAC。
+
+---
+
+## 工程结构
+
+代码按职责拆分在 [`HOGN/`](HOGN/) 目录下：
+
+| 文件                                                     | 职责                                                          |
+|--------------------------------------------------------|-------------------------------------------------------------|
+| [`HOGN.cpp`](HOGN/HOGN.cpp)                              | `main()` —— 安装钩子并跑消息泵。                                |
+| [`HOGN.h`](HOGN/HOGN.h)                                  | 项目级头文件、类型 (`letter`、`actionRecord`)、消息 ID 等。          |
+| [`Globals.{h,cpp}`](HOGN/Globals.h)                      | 全局状态的 `extern` 声明 + 唯一定义。                              |
+| [`Hooks.cpp`](HOGN/Hooks.cpp)                            | 低级键鼠钩子回调。                                              |
+| [`Macro.cpp`](HOGN/Macro.cpp)                            | 录制 + 后台线程回放。                                            |
+| [`ConfigFile.cpp`](HOGN/ConfigFile.cpp)                  | 首次安装、文件 IO、保存对话框。                                    |
+| [`ConfigTrie.cpp`](HOGN/ConfigTrie.cpp)                  | 构建并遍历快捷键前缀树。                                          |
+| [`ConfigWatcher.cpp`](HOGN/ConfigWatcher.cpp)            | 编辑后自动重载的文件监听。                                        |
+| [`Command.cpp`](HOGN/Command.cpp)                        | `runCommand`（O(1) 命令分派）和 `excuteTar`。                     |
+| [`Toast.cpp`](HOGN/Toast.cpp)                            | 圆角分层 toast 通知。                                            |
+| [`Tray.cpp`](HOGN/Tray.cpp)                              | 隐藏主窗口、托盘图标、弹出菜单。                                    |
+| [`QrCodeWindow.cpp`](HOGN/QrCodeWindow.cpp)              | 剪贴板文本 → 二维码弹窗。                                         |
+| [`WinUtils.cpp`](HOGN/WinUtils.cpp)                      | DPI、前台窗口类名判断、文字绘制辅助。                                |
+| [`Clipboard.cpp`](HOGN/Clipboard.cpp)                    | 剪贴板操作 + 按键模拟。                                          |
+| [`SoundControl.cpp`](HOGN/SoundControl.cpp)              | 音量 / 静音（`IAudioEndpointVolume`）。                          |
+| [`SystemControl.cpp`](HOGN/SystemControl.cpp)            | 关机 / 重启 / 权限。                                            |
+| [`ShellOps.cpp`](HOGN/ShellOps.cpp)                      | `openTar`、环境变量替换、资源管理器枚举。                            |
+
+---
+
+## 使用小贴士
+
+- **选用"反常"的字母组合**。HOG 监听一切按键，因此最好用平时不会出现的字母组合（示例配置全部以 `JF` 开头就是这个原因）。
+- **退格自清理**。命中前缀后 HOG 会自动按下与前缀长度相同次数的退格，把你刚刚打的字母从文本框里删掉。资源管理器窗口除外（退格在那里是返回上级）。
+- **同一条前缀只能映射一个动作**。但 `JFCFG` 和 `JFCFGX` 可以共存：HOG 会在你停止继续输入后选最长匹配。
+- **修饰键**：`*` 表示左 `Ctrl`，`+` 表示右 `Ctrl`；其它修饰键（`Shift`、`Alt`、`Win`）不在快捷键语法里。
+- **剪贴板重复次数**：`CMD:ACTION` 会把剪贴板当作整数读取作为重复次数；非数字则默认 1 次。
