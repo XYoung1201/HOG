@@ -1,6 +1,290 @@
 ﻿#include"HOGN.h"
 #include "resource.h"
-// 函数用于显示提示框
+
+// ============================================================================
+// Toast notification
+// ============================================================================
+// Non-blocking, layered, rounded-corner notification window. Lives on its own
+// thread so it never stalls the main message loop or the global hooks.
+// Calling ShowToastMessage from any thread updates the displayed text and
+// restarts the fade-in/hold/fade-out animation.
+
+static const int TOAST_WIDTH = 360;
+static const int TOAST_HEIGHT = 60;
+static const int TOAST_CORNER = 16;
+static const int TOAST_BOTTOM_MARGIN = 140;
+static const int TOAST_FADE_IN_MS = 180;
+static const int TOAST_HOLD_MS = 1800;
+static const int TOAST_FADE_OUT_MS = 420;
+static const BYTE TOAST_MAX_ALPHA = 235;
+static const UINT_PTR TOAST_TIMER_ID = 0x4001;
+#define TOAST_WM_TRIGGER (WM_USER + 100)
+
+static HWND g_toastHwnd = NULL;
+static std::atomic<bool> g_toastReady(false);
+static std::mutex g_toastMutex;
+static std::wstring g_toastMessage;
+static DWORD g_toastStartTime = 0;
+
+static std::wstring AnsiToWide(const std::string& s) {
+	if (s.empty()) return L"";
+	int wlen = MultiByteToWideChar(CP_ACP, 0, s.c_str(), -1, NULL, 0);
+	if (wlen <= 0) return L"";
+	std::wstring w(wlen, L'\0');
+	MultiByteToWideChar(CP_ACP, 0, s.c_str(), -1, &w[0], wlen);
+	while (!w.empty() && w.back() == L'\0') w.pop_back();
+	return w;
+}
+
+static void RenderToast(HWND hwnd, BYTE alpha) {
+	HDC hdcScreen = GetDC(NULL);
+	HDC hdcMem = CreateCompatibleDC(hdcScreen);
+
+	BITMAPINFO bmi = { 0 };
+	bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	bmi.bmiHeader.biWidth = TOAST_WIDTH;
+	bmi.bmiHeader.biHeight = -TOAST_HEIGHT; // top-down
+	bmi.bmiHeader.biPlanes = 1;
+	bmi.bmiHeader.biBitCount = 32;
+	bmi.bmiHeader.biCompression = BI_RGB;
+
+	void* pBits = NULL;
+	HBITMAP hBitmap = CreateDIBSection(hdcScreen, &bmi, DIB_RGB_COLORS, &pBits, NULL, 0);
+	HBITMAP hOldBitmap = (HBITMAP)SelectObject(hdcMem, hBitmap);
+
+	if (pBits)
+		memset(pBits, 0, TOAST_WIDTH * TOAST_HEIGHT * 4);
+
+	std::wstring msg;
+	{
+		std::lock_guard<std::mutex> lock(g_toastMutex);
+		msg = g_toastMessage;
+	}
+
+	{
+		using namespace Gdiplus;
+		Graphics graphics(hdcMem);
+		graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+		graphics.SetTextRenderingHint(TextRenderingHintAntiAliasGridFit);
+
+		REAL radius = (REAL)TOAST_CORNER;
+		REAL w = (REAL)TOAST_WIDTH;
+		REAL h = (REAL)TOAST_HEIGHT;
+
+		GraphicsPath path;
+		path.AddArc(0, 0, radius * 2, radius * 2, 180, 90);
+		path.AddArc(w - radius * 2, 0, radius * 2, radius * 2, 270, 90);
+		path.AddArc(w - radius * 2, h - radius * 2, radius * 2, radius * 2, 0, 90);
+		path.AddArc(0, h - radius * 2, radius * 2, radius * 2, 90, 90);
+		path.CloseFigure();
+
+		SolidBrush bgBrush(Color(alpha, 28, 28, 32));
+		graphics.FillPath(&bgBrush, &path);
+
+		Pen borderPen(Color((BYTE)(alpha * 0.4), 255, 255, 255), 1.0f);
+		graphics.DrawPath(&borderPen, &path);
+
+		FontFamily fontFamily(L"Segoe UI");
+		Font font(&fontFamily, 17, FontStyleRegular, UnitPixel);
+		SolidBrush textBrush(Color(alpha, 245, 245, 245));
+		StringFormat format;
+		format.SetAlignment(StringAlignmentCenter);
+		format.SetLineAlignment(StringAlignmentCenter);
+		format.SetFormatFlags(StringFormatFlagsNoWrap);
+		format.SetTrimming(StringTrimmingEllipsisCharacter);
+
+		RectF textRect(10, 0, w - 20, h);
+		graphics.DrawString(msg.c_str(), -1, &font, textRect, &format, &textBrush);
+	}
+
+	// GDI+ produces straight alpha; UpdateLayeredWindow + AC_SRC_ALPHA wants premultiplied.
+	if (pBits) {
+		DWORD* pixels = (DWORD*)pBits;
+		int total = TOAST_WIDTH * TOAST_HEIGHT;
+		for (int i = 0; i < total; i++) {
+			DWORD c = pixels[i];
+			BYTE a = (BYTE)((c >> 24) & 0xFF);
+			if (a == 0) {
+				pixels[i] = 0;
+			} else if (a < 255) {
+				BYTE r = (BYTE)((c >> 16) & 0xFF);
+				BYTE g = (BYTE)((c >> 8) & 0xFF);
+				BYTE b = (BYTE)(c & 0xFF);
+				r = (BYTE)((r * a + 127) / 255);
+				g = (BYTE)((g * a + 127) / 255);
+				b = (BYTE)((b * a + 127) / 255);
+				pixels[i] = ((DWORD)a << 24) | ((DWORD)r << 16) | ((DWORD)g << 8) | b;
+			}
+		}
+	}
+
+	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+	POINT ptDst;
+	ptDst.x = (screenWidth - TOAST_WIDTH) / 2;
+	ptDst.y = screenHeight - TOAST_HEIGHT - TOAST_BOTTOM_MARGIN;
+
+	POINT ptSrc = { 0, 0 };
+	SIZE size = { TOAST_WIDTH, TOAST_HEIGHT };
+	BLENDFUNCTION blend = { AC_SRC_OVER, 0, 255, AC_SRC_ALPHA };
+
+	UpdateLayeredWindow(hwnd, hdcScreen, &ptDst, &size, hdcMem, &ptSrc, 0, &blend, ULW_ALPHA);
+
+	SelectObject(hdcMem, hOldBitmap);
+	DeleteObject(hBitmap);
+	DeleteDC(hdcMem);
+	ReleaseDC(NULL, hdcScreen);
+}
+
+static LRESULT CALLBACK ToastWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	switch (msg) {
+	case TOAST_WM_TRIGGER:
+		g_toastStartTime = GetTickCount();
+		RenderToast(hwnd, 0);
+		ShowWindow(hwnd, SW_SHOWNOACTIVATE);
+		KillTimer(hwnd, TOAST_TIMER_ID);
+		SetTimer(hwnd, TOAST_TIMER_ID, 16, NULL);
+		return 0;
+	case WM_TIMER:
+		if (wParam == TOAST_TIMER_ID) {
+			DWORD elapsed = GetTickCount() - g_toastStartTime;
+			BYTE alpha;
+			if (elapsed < (DWORD)TOAST_FADE_IN_MS) {
+				alpha = (BYTE)((elapsed * TOAST_MAX_ALPHA) / TOAST_FADE_IN_MS);
+			} else if (elapsed < (DWORD)(TOAST_FADE_IN_MS + TOAST_HOLD_MS)) {
+				alpha = TOAST_MAX_ALPHA;
+			} else if (elapsed < (DWORD)(TOAST_FADE_IN_MS + TOAST_HOLD_MS + TOAST_FADE_OUT_MS)) {
+				DWORD fadeElapsed = elapsed - TOAST_FADE_IN_MS - TOAST_HOLD_MS;
+				alpha = (BYTE)(TOAST_MAX_ALPHA - (fadeElapsed * TOAST_MAX_ALPHA) / TOAST_FADE_OUT_MS);
+			} else {
+				KillTimer(hwnd, TOAST_TIMER_ID);
+				ShowWindow(hwnd, SW_HIDE);
+				return 0;
+			}
+			RenderToast(hwnd, alpha);
+		}
+		return 0;
+	case WM_CLOSE:
+		return 0; // don't allow close
+	}
+	return DefWindowProc(hwnd, msg, wParam, lParam);
+}
+
+static void ToastThreadProc() {
+	HINSTANCE hInstance = GetModuleHandle(NULL);
+	const TCHAR* className = _T("HOGNToastClass");
+
+	WNDCLASS wc = { 0 };
+	wc.lpfnWndProc = ToastWndProc;
+	wc.hInstance = hInstance;
+	wc.hbrBackground = NULL;
+	wc.lpszClassName = className;
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	RegisterClass(&wc);
+
+	g_toastHwnd = CreateWindowEx(
+		WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | WS_EX_TRANSPARENT,
+		className,
+		_T("HOGN Toast"),
+		WS_POPUP,
+		0, 0, TOAST_WIDTH, TOAST_HEIGHT,
+		NULL, NULL, hInstance, NULL);
+
+	g_toastReady = true;
+	if (!g_toastHwnd)
+		return;
+
+	MSG msg;
+	while (GetMessage(&msg, NULL, 0, 0) > 0) {
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+}
+
+void ShowToastMessage(const std::string& message) {
+	static std::once_flag toastInitFlag;
+	std::call_once(toastInitFlag, []() {
+		std::thread(ToastThreadProc).detach();
+		for (int i = 0; i < 200 && !g_toastReady.load(); i++) {
+			Sleep(5);
+		}
+	});
+
+	{
+		std::lock_guard<std::mutex> lock(g_toastMutex);
+		g_toastMessage = AnsiToWide(message);
+	}
+
+	HWND h = g_toastHwnd;
+	if (h)
+		PostMessage(h, TOAST_WM_TRIGGER, 0, 0);
+}
+
+// ============================================================================
+// Config file watcher
+// ============================================================================
+// After the user opens the config editor we spawn a thread that polls the
+// config file's last-write timestamp. Once it changes (and stays stable for
+// a moment), we SendMessage the main window to reload. The compare_exchange
+// guard on g_watching_config prevents stacking watchers if CONFIG is
+// triggered multiple times.
+
+static ULONGLONG GetConfigFileModTime(const std::string& path) {
+	WIN32_FILE_ATTRIBUTE_DATA data;
+	if (!GetFileAttributesExA(path.c_str(), GetFileExInfoStandard, &data))
+		return 0;
+	ULARGE_INTEGER uli;
+	uli.LowPart = data.ftLastWriteTime.dwLowDateTime;
+	uli.HighPart = data.ftLastWriteTime.dwHighDateTime;
+	return uli.QuadPart;
+}
+
+static void WatchConfigFileProc() {
+	std::string path = config_path;
+
+	ULONGLONG last = GetConfigFileModTime(path);
+
+	DWORD startTick = GetTickCount();
+	const DWORD timeoutMs = 10 * 60 * 1000; // 10 minutes
+
+	while ((GetTickCount() - startTick) < timeoutMs) {
+		Sleep(800);
+		ULONGLONG current = GetConfigFileModTime(path);
+		if (current == 0) continue;
+		if (current == last) continue;
+
+		// Debounce: keep polling until writes settle. We require two
+		// consecutive equal readings before declaring "done editing".
+		ULONGLONG pending = current;
+		for (int i = 0; i < 8; i++) {
+			Sleep(700);
+			ULONGLONG after = GetConfigFileModTime(path);
+			if (after == 0) continue;
+			if (after == pending) {
+				if (g_mainHwnd)
+					SendMessageA(g_mainHwnd, WM_USER_RELOAD_CONFIG, 0, 0);
+				g_watching_config = false;
+				return;
+			}
+			pending = after;
+		}
+		last = pending;
+	}
+
+	g_watching_config = false;
+}
+
+static void StartConfigWatcher() {
+	bool expected = false;
+	if (g_watching_config.compare_exchange_strong(expected, true)) {
+		std::thread(WatchConfigFileProc).detach();
+	}
+}
+
+// ============================================================================
+// Original helpers below
+// ============================================================================
+
 bool AskToUseDefaultPath() {
 	int result = MessageBox(NULL,
 		TEXT("使用默认配置文件？"),
@@ -913,6 +1197,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	bool listeningState = listening;
 	switch (msg) {
 	case WM_CREATE: {
+		g_mainHwnd = hwnd;
 		ZeroMemory(&nid, sizeof(NOTIFYICONDATA));
 		nid.cbSize = sizeof(NOTIFYICONDATA);
 		nid.hWnd = hwnd;
@@ -925,6 +1210,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		Shell_NotifyIcon(NIM_ADD, &nid);
 	}
 				  break;
+	case WM_USER_RELOAD_CONFIG: {
+		// Marshalled here from the config-watcher thread so that the trie
+		// reload happens on the same thread as the hook callbacks.
+		bool prev = listening;
+		listening = true;
+		runCommand("RELOAD");
+		listening = prev;
+		return 0;
+	}
 	case WM_COMMAND:
 		switch (LOWORD(wParam)) {
 		case ID_TRAY_EXIT:
@@ -1219,7 +1513,7 @@ void runCommand(string command) {
 		if (command == "RELOAD") {
 			clearMem(o);
 			readPara();
-			MessageBox(GetForegroundWindow(), CString("Reload Successfully!"), CString("Success"), MB_OK);
+			ShowToastMessage("Reloaded config");
 			return;
 		}
 		if (command == "CHANGECONF") {
@@ -1233,6 +1527,8 @@ void runCommand(string command) {
 		}
 		if (command == "CONFIG") {
 			openTar(config_path);
+			ShowToastMessage("Config opened");
+			StartConfigWatcher();
 			return;
 		}
 		if (command == "MUTETOGGLE") {
@@ -1274,45 +1570,123 @@ void runCommand(string command) {
 			return;
 		}
 		if (command == "RECORD") {
+			if (action_doing) {
+				ShowToastMessage("Cannot record while playing macro");
+				return;
+			}
 			action_listening = !action_listening;
 			if (action_listening) {
 				actions.clear();
+				ShowToastMessage("Macro recording started");
 			}
 			else {
-				actions.erase(actions.end() - mark->num * 3 + 1, actions.end());
-				actions.erase(actions.begin(), actions.begin() + 1);
+				// Strip the hotkey events that triggered start/stop from the buffer.
+				// (Preserves the original heuristic: drop the trailing hotkey-down/up
+				// sequence and the leading up-event from the start trigger.)
+				if (mark && (int)actions.size() >= mark->num * 3) {
+					actions.erase(actions.end() - mark->num * 3 + 1, actions.end());
+				}
+				if (!actions.empty()) {
+					actions.erase(actions.begin(), actions.begin() + 1);
+				}
+				ShowToastMessage("Macro recording stopped");
 			}
 			return;
 		}
 		if (command == "ACTION") {
-			action_doing = true;
-			int last_action_num = 2;
+			if (action_listening) {
+				ShowToastMessage("Cannot play macro while recording");
+				return;
+			}
+			if (action_doing) {
+				ShowToastMessage("Macro already playing");
+				return;
+			}
+			if (actions.empty()) {
+				ShowToastMessage("No macro recorded");
+				return;
+			}
 			int repeat_num = getClipboardNumber();
-			while (repeat_num-- && action_doing) {
-				for (const auto& record : actions) {
-					switch (record.action) {
-					case 0: // Mouse click
-						if (last_action_num != 0)
-							Sleep(300);
-						else
-							Sleep(100);
-						replayMouseClick(record.value2, record.value1);
-						last_action_num = 0;
-						break;
-					case 1: // Keyboard
-						if (last_action_num != 1)
-							Sleep(300);
-						else
-							Sleep(100);
-						replayKeyboardAction(record.value2, record.value1);
-						last_action_num = 1;
-						break;
-					case 2: // Mouse move
-						Sleep(10);
-						replayMouseMove(record.value1, record.value2);
-						last_action_num = 2;
-						break;
+			if (repeat_num < 1) repeat_num = 1;
+
+			action_doing = true;
+			action_paused = false;
+			ShowToastMessage("Macro playback started");
+
+			// Run playback on a dedicated thread so the keyboard hook stays
+			// responsive (pause/stop hotkeys keep working, simulated input
+			// doesn't pile up behind a blocked hook).
+			std::thread([repeat_num]() {
+				int last_action_num = 2;
+				for (int r = 0; r < repeat_num && action_doing.load(); r++) {
+					for (const auto& record : actions) {
+						while (action_paused.load() && action_doing.load())
+							Sleep(50);
+						if (!action_doing.load()) break;
+
+						switch (record.action) {
+						case 0: // Mouse click
+							Sleep(last_action_num != 0 ? 300 : 100);
+							if (!action_doing.load()) break;
+							replayMouseClick(record.value2, record.value1);
+							last_action_num = 0;
+							break;
+						case 1: // Keyboard
+							Sleep(last_action_num != 1 ? 300 : 100);
+							if (!action_doing.load()) break;
+							replayKeyboardAction(record.value2, record.value1);
+							last_action_num = 1;
+							break;
+						case 2: // Mouse move
+							Sleep(10);
+							if (!action_doing.load()) break;
+							replayMouseMove(record.value1, record.value2);
+							last_action_num = 2;
+							break;
+						}
 					}
+				}
+				bool stopped_by_user = !action_doing.load();
+				action_doing = false;
+				action_paused = false;
+				if (stopped_by_user)
+					ShowToastMessage("Macro playback stopped");
+				else
+					ShowToastMessage("Macro playback finished");
+			}).detach();
+			return;
+		}
+		if (command == "ACTIONSTOP") {
+			if (action_doing) {
+				action_doing = false;
+				action_paused = false;
+			} else {
+				ShowToastMessage("No macro playing");
+			}
+			return;
+		}
+		if (command == "ACTIONPAUSE") {
+			if (action_doing && !action_paused) {
+				action_paused = true;
+				ShowToastMessage("Macro playback paused");
+			}
+			return;
+		}
+		if (command == "ACTIONRESUME") {
+			if (action_doing && action_paused) {
+				action_paused = false;
+				ShowToastMessage("Macro playback resumed");
+			}
+			return;
+		}
+		if (command == "ACTIONPAUSETOGGLE") {
+			if (action_doing) {
+				if (action_paused) {
+					action_paused = false;
+					ShowToastMessage("Macro playback resumed");
+				} else {
+					action_paused = true;
+					ShowToastMessage("Macro playback paused");
 				}
 			}
 			return;
@@ -1323,7 +1697,7 @@ void runCommand(string command) {
 		return;
 	}
 
-	MessageBox(GetForegroundWindow(), CString("WRONG BUILD-IN FUNCTION!"), CString("ERROR"), MB_OKCANCEL);
+	ShowToastMessage("Unknown command: " + command);
 }
 
 void writeText(string text) {
@@ -1335,6 +1709,11 @@ void writeText(string text) {
 	simulateWrite(text);
 }
 
+static std::string TruncateForToast(const std::string& s, size_t maxLen = 40) {
+	if (s.size() <= maxLen) return s;
+	return s.substr(0, maxLen - 3) + "...";
+}
+
 void excuteTar(string* tar) {
 	string text = extractContent(*tar, "TEXT:");
 	string cmd = extractContent(*tar, "CMD:");
@@ -1342,19 +1721,29 @@ void excuteTar(string* tar) {
 	string path = extractContent(*tar,"PATH:");
 	string path_A = extractContent(*tar,"PATH_A:");
 	try {
-		if (text != "" && listening)
+		if (text != "" && listening) {
+			ShowToastMessage("Triggered: text input");
 			writeText(text);
-		else if (cmd != "")
+		}
+		else if (cmd != "") {
+			// runCommand emits its own toast per command.
 			runCommand(cmd);
-		else if (set != "" && listening)
+		}
+		else if (set != "" && listening) {
+			ShowToastMessage("Triggered: " + TruncateForToast(set));
 			handleSet(set);
-		else if (path != "" && listening)
+		}
+		else if (path != "" && listening) {
+			ShowToastMessage("Opening: " + TruncateForToast(path));
 			openTar(path);
-		else if (path_A!="" && listening)
+		}
+		else if (path_A!="" && listening) {
+			ShowToastMessage("Opening (admin): " + TruncateForToast(path_A));
 			openTar(path_A,true);
+		}
 	}
 	catch (...) {
-		MessageBox(GetForegroundWindow(), CString("Configure Wrong!"), CString("ERROR"), MB_OK);
+		ShowToastMessage("Configure Wrong!");
 	}
 }
 
@@ -1377,17 +1766,32 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 					TouchBackspace(mark->num);
 				}
 				if (!not_up[26] && !not_up[27] && !action_doing) {
+					// excuteTar may launch a threaded ACTION; the thread
+					// itself manages action_doing, so do NOT reset it here.
 					excuteTar(mark->a);
-					action_doing = false;
 				}
 				mark = o;
 			}
 		}
 
 		if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
-			if (press->vkCode == 0x51) {
-				//如果按下的是Q键，退出循环回放模式
-				action_doing = false;
+			// Macro playback control hotkeys. Filter LLKHF_INJECTED so that
+			// keys synthesized via SendInput during playback don't accidentally
+			// stop or pause the playback.
+			bool injected = (press->flags & LLKHF_INJECTED) != 0;
+			if (!injected && action_doing) {
+				if (press->vkCode == 0x51) { // Q -> stop
+					action_doing = false;
+				}
+				else if (press->vkCode == 0x50) { // P -> pause/resume toggle
+					if (action_paused) {
+						action_paused = false;
+						ShowToastMessage("Macro playback resumed");
+					} else {
+						action_paused = true;
+						ShowToastMessage("Macro playback paused");
+					}
+				}
 			}
 			state = 1;
 			if(!getKeyState(press->vkCode))
@@ -1396,7 +1800,9 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 			mark = getNextLetter(mark, press->vkCode);
 		}
 
-		if (action_listening)
+		// Don't record events that were synthesized by our own macro playback,
+		// otherwise replaying a macro while recording would create a feedback loop.
+		if (action_listening && !action_doing && !(press->flags & LLKHF_INJECTED))
 			recordKeyboard(press->vkCode, state);
 
 		if (interval_ms > 1000)
@@ -1407,26 +1813,29 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 
 LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode >= 0) {
+		PMSLLHOOKSTRUCT mouseLL = (PMSLLHOOKSTRUCT)lParam;
 		PMOUSEHOOKSTRUCT mouse = (PMOUSEHOOKSTRUCT)lParam;
+		bool injected = mouseLL && ((mouseLL->flags & LLMHF_INJECTED) != 0);
+		bool canRecord = action_listening && !action_doing && !injected;
 		switch (wParam) {
 		case WM_LBUTTONDOWN:
-			if (action_listening)
+			if (canRecord)
 				recordClick(0, 0); // 左键按下
 			break;
 		case WM_LBUTTONUP:
-			if (action_listening)
+			if (canRecord)
 				recordClick(0, 1); // 左键释放
 			break;
 		case WM_RBUTTONDOWN:
-			if (action_listening)
+			if (canRecord)
 				recordClick(1, 0); // 右键按下
 			break;
 		case WM_RBUTTONUP:
-			if (action_listening)
+			if (canRecord)
 				recordClick(1, 1); // 右键释放
 			break;
 		case WM_MOUSEMOVE:
-			if (action_listening)
+			if (canRecord)
 				recordMove(mouse->pt.x, mouse->pt.y); // 鼠标移动
 			break;
 		}
@@ -1453,12 +1862,19 @@ int main() {
 		MessageBox(GetForegroundWindow(), _T("An instance of this application is already running!"), _T("Warning"), MB_OK);
 		return -1;
 	}
+
+	// GDI+ is required for the toast notification rendering. Initialize it
+	// before any code path that might call ShowToastMessage.
+	Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+	Gdiplus::GdiplusStartup(&g_gdiplusToken, &gdiplusStartupInput, NULL);
+
 	trayIconVisible = true;
 	listening = true;
 	action_listening = false;
 	action_doing = false;
+	action_paused = false;
 	lastTime = high_resolution_clock::now();
-	
+
 	MSG msg;
 	para_path = "C:\\ProgramData\\HOG\\config";
 	config_path = "C:\\ProgramData\\HOG\\HOG.conf";
@@ -1468,5 +1884,11 @@ int main() {
 	readPara();
 	myhook = SetWindowsHookEx(WH_KEYBOARD_LL, KeyboardProc, GetCurrentModule(), 0);
 	mouseHook = SetWindowsHookEx(WH_MOUSE_LL, MouseProc, GetCurrentModule(), 0);
-	while (GetMessageW(&msg, NULL, 0, 0) != -1);
+	while (GetMessageW(&msg, NULL, 0, 0) > 0) {
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	Gdiplus::GdiplusShutdown(g_gdiplusToken);
+	return 0;
 }
