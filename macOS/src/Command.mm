@@ -87,7 +87,11 @@ void cmd_qrcode()                { printClipboard(); }
 void cmd_open_cmd_in_curr_path() { openTerminalInCurrentPath(); }
 
 void cmd_google_search() {
-	openTar(std::string("https://google.com/search?q=") + UrlEncode(getClipboardText()));
+	// Open the URL directly: openTar expands %VAR%, which would swallow the
+	// percent-escapes (e.g. "%E5%8D%A1" for non-ASCII text).
+	std::string url = "https://google.com/search?q=" + UrlEncode(getClipboardText());
+	NSURL* u = [NSURL URLWithString:[NSString stringWithUTF8String:url.c_str()]];
+	if (u) [NSWorkspace.sharedWorkspace openURL:u];
 }
 
 void cmd_close_this_window() {
