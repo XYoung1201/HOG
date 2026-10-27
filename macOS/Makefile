@@ -4,6 +4,9 @@
 #   make run        build and launch it
 #   make install    copy it to /Applications
 #   make clean
+#
+# Universal build (Apple silicon + Intel), as used for releases:
+#   make ARCHS="-arch arm64 -arch x86_64"
 
 APP      := build/HOGN.app
 BIN      := $(APP)/Contents/MacOS/HOGN
@@ -17,9 +20,10 @@ OBJS     := $(patsubst src/%.mm,$(OBJDIR)/%.o,$(SRCS_MM)) \
             $(OBJDIR)/qrcodegen.o
 
 CXX      := clang++
-CXXFLAGS := -std=c++17 -O2 -Wall -Wno-unused-function -mmacosx-version-min=12.0 -MMD -MP
+ARCHS    ?=
+CXXFLAGS := $(ARCHS) -std=c++17 -O2 -Wall -Wno-unused-function -mmacosx-version-min=12.0 -MMD -MP
 MMFLAGS  := $(CXXFLAGS) -fobjc-arc
-LDFLAGS  := -mmacosx-version-min=12.0 \
+LDFLAGS  := $(ARCHS) -mmacosx-version-min=12.0 \
             -framework Cocoa -framework Carbon -framework ApplicationServices \
             -framework UniformTypeIdentifiers
 
