@@ -33,6 +33,7 @@ It has no main window — just an icon in the system tray (Windows) or menu bar 
 
 - [Features](#features)
 - [Use Cases](#use-cases)
+- [Comparison with Similar Tools](#comparison-with-similar-tools)
 - [Quick Start](#quick-start)
 - [Configuration](#configuration)
 - [Macro Recording and Playback](#macro-recording-and-playback)
@@ -64,6 +65,22 @@ It has no main window — just an icon in the system tray (Windows) or menu bar 
 | Copying paragraphs out of PDFs | Copy, trigger `CMD:COPYPDFTEXT`, paste a clean paragraph |
 | Sending text or a link to your phone | Copy, trigger `CMD:QRCODE`, scan |
 | Repetitive clicking / form filling | Record once with `CMD:RECORD`, put a count on the clipboard, replay with `CMD:ACTION` |
+
+## Comparison with Similar Tools
+
+This table shows where HOG fits; it doesn't claim HOG is better at everything.
+
+| Dimension | HOG | AutoHotkey | PowerToys Keyboard Manager | FastKeys |
+|---|---|---|---|---|
+| Trigger model | **Letter sequences** | Hotkeys + hotstrings + scripts | Key / shortcut remapping | Shortcuts, text expansion, launcher, gestures |
+| Setup | Plain text, one rule per line | Scripting language | GUI | Feature-rich configuration |
+| Shortcut conflicts | **Naturally rare** | Mostly chord-based | Traditional shortcuts | Mostly traditional shortcuts |
+| Automation depth | Medium to high | **Very high** | Low to medium | High |
+| Learning curve | **Low** | Medium to high | **Lowest** | Medium |
+| Platforms | **Windows + macOS** | Windows only | Windows only | Windows only |
+| Best for | A memorable, low-conflict, always-on shortcut layer | Advanced scripted automation | Simple remapping | An all-in-one productivity suite |
+
+Pick AutoHotkey for maximum scripting power, PowerToys for simple remapping, FastKeys for a broad suite — and HOG for a **sequence-first, conflict-free, simple, lightweight** hotkey layer.
 
 ## Quick Start
 
