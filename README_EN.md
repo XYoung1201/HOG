@@ -29,8 +29,35 @@ It has no main window — just an icon in the system tray (Windows) or menu bar 
 
 **One plain-text config for both platforms.** The same `CMD:`, `TEXT:` and `PATH:` lines work on Windows and macOS; when you switch machines, only the platform-specific paths need changing.
 
+## Demo
+
+These clips were recorded on the macOS version. The letter sequences come from a sample config; change them to whatever suits you.
+
+<table>
+  <tr>
+    <td width="50%"><b>Clipboard QR code</b> · <code>JFQR</code><br>Copy a link, type <code>JFQR</code>, scan it with your phone<br><img src="docs/gif/01-qrcode.gif" alt="Clipboard QR code"></td>
+    <td width="50%"><b>Type a saved snippet</b> · <code>JFYX</code><br>Emails, addresses, canned replies, typed for you<br><img src="docs/gif/03-text.gif" alt="Text snippet"></td>
+  </tr>
+  <tr>
+    <td><b>Open folders and apps</b> · <code>JFXM</code> / <code>JFJSQ</code><br>Deeply nested folders and everyday apps in one step<br><img src="docs/gif/02-open.gif" alt="Open folder and app"></td>
+    <td><b>Open a website</b> · <code>JFGT</code><br>No bookmarks, no typing URLs<br><img src="docs/gif/06-weblink.gif" alt="Open a website"></td>
+  </tr>
+  <tr>
+    <td><b>Clean up text copied from a PDF</b> · <code>JFCPDF</code><br>Joins broken lines and squeezes spaces before you paste<br><img src="docs/gif/04-pdf.gif" alt="Reformat PDF text"></td>
+    <td><b>Search what you copied</b> · <code>JFGS</code><br>Copy a term, get Google results right away<br><img src="docs/gif/07-search.gif" alt="Google search clipboard"></td>
+  </tr>
+  <tr>
+    <td><b>Close every folder window</b> · <code>JFCAD</code><br>A screen full of Finder / Explorer windows, gone at once<br><img src="docs/gif/08-closeall.gif" alt="Close all folder windows"></td>
+    <td><b>Terminal in the current folder</b> · <code>JFOCMD</code><br>Opens Terminal at the frontmost Finder window's folder (macOS only)<br><img src="docs/gif/09-terminal.gif" alt="Open terminal here"></td>
+  </tr>
+  <tr>
+    <td colspan="2"><b>Record and replay a macro</b> · <code>****</code> / <code>++++</code><br>Tap left ⌘ four times to start / stop recording; put a count on the clipboard and tap right ⌘ four times to replay (clip sped up 1.5×)<br><img src="docs/gif/05-macro.gif" alt="Macro record and replay" width="60%"></td>
+  </tr>
+</table>
+
 ## Contents
 
+- [Demo](#demo)
 - [Features](#features)
 - [Use Cases](#use-cases)
 - [Comparison with Similar Tools](#comparison-with-similar-tools)
