@@ -91,6 +91,7 @@ HOG 是一个常驻后台的轻量工具，提供 Windows 与 macOS 两个原生
 | 平台 | 文件 | 安装 |
 |---|---|---|
 | Windows 10 / 11（x64） | `HOGN-Windows-x64.zip` | 解压后直接运行 `HOGN.exe` |
+| Windows 11 on Arm（ARM64，如 MacBook 上 Parallels Desktop 中的 Windows） | `HOGN-Windows-ARM64.zip` | 解压后直接运行 `HOGN.exe` |
 | macOS 12 及以上（Apple 芯片与 Intel 通用） | `HOGN-macOS.zip` | 解压后把 `HOGN.app` 拖到「应用程序」 |
 
 > Windows Defender 可能误报，macOS 可能提示「无法打开」，原因和处理方法见[常见问题](#常见问题)。程序源码完全公开。
@@ -245,7 +246,7 @@ HOG 会匹配你敲下的所有字母，所以请选日常不会连续出现的�
 ### Windows
 
 1. 用 **Visual Studio 2022**（工具集 v143）打开 `HOGN.sln`。
-2. 选择 `Release | x64` 生成，得到 `HOGN.exe`。只依赖 Windows SDK 和 GDI+。
+2. 选择 `Release | x64` 生成，得到 `HOGN.exe`；Windows on Arm 选 `Release | ARM64`（需要安装 VS 的 ARM64 生成工具和 ATL）。只依赖 Windows SDK 和 GDI+。
 
 ### macOS
 
@@ -266,7 +267,7 @@ make run          # 或者直接从 build 目录运行
 | [`HOGN/`](HOGN/) | Windows 版：Win32 + GDI+，按功能拆分为 `Hooks`、`Command`、`ConfigTrie`、`Macro`、`Toast`、`Tray` 等模块 |
 | [`macOS/src/`](macOS/src/) | macOS 版：Objective-C++，模块与 Windows 版一一对应，热键前缀树逻辑相同 |
 | [`HOGN/qrcodegen.*`](HOGN/qrcodegen.hpp) | 两个版本共用的二维码库 |
-| [`.github/workflows/release.yml`](.github/workflows/release.yml) | 推送 `v*` 标签时自动编译两个平台并上传到 Release |
+| [`.github/workflows/release.yml`](.github/workflows/release.yml) | 推送 `v*` 标签时自动编译 Windows x64 / ARM64 与 macOS 并上传到 Release |
 
 ## 反馈与贡献
 
