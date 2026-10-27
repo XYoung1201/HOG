@@ -1,10 +1,12 @@
-# Builds HOGN for Windows and macOS. Pushing a v* tag also publishes both
-# archives to the GitHub Release for that tag (created if it doesn't exist).
+# Builds HOGN for Windows and macOS on every pull request. Pushing a v* tag
+# also publishes both archives to the GitHub Release for that tag (created if
+# it doesn't exist).
 name: Release
 
 on:
   push:
     tags: ['v*']
+  pull_request:
   workflow_dispatch:
 
 permissions:
