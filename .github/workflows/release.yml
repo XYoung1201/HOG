@@ -15,24 +15,27 @@ permissions:
 jobs:
   windows:
     runs-on: windows-2022
+    strategy:
+      matrix:
+        platform: [x64, ARM64]   # ARM64 runs natively in Windows on Arm, e.g. Parallels on Apple silicon
     steps:
       - uses: actions/checkout@v4
       - uses: microsoft/setup-msbuild@v2
-      - name: Build Release|x64
-        run: msbuild HOGN.sln /m /p:Configuration=Release /p:Platform=x64
+      - name: Build Release|${{ matrix.platform }}
+        run: msbuild HOGN.sln /m /p:Configuration=Release /p:Platform=${{ matrix.platform }}
       - name: Package
         shell: pwsh
         run: |
-          $exe = Get-ChildItem -Recurse -Filter HOGN.exe | Where-Object { $_.FullName -match '\\x64\\Release\\' } | Select-Object -First 1
+          $exe = Get-ChildItem -Recurse -Filter HOGN.exe | Where-Object { $_.FullName -match '\\${{ matrix.platform }}\\Release\\' } | Select-Object -First 1
           if (-not $exe) { throw "HOGN.exe not found" }
           New-Item -ItemType Directory dist | Out-Null
           Copy-Item $exe.FullName dist/HOGN.exe
           Copy-Item HOG.example.conf dist/
-          Compress-Archive -Path dist/* -DestinationPath HOGN-Windows-x64.zip
+          Compress-Archive -Path dist/* -DestinationPath HOGN-Windows-${{ matrix.platform }}.zip
       - uses: actions/upload-artifact@v4
         with:
-          name: windows
-          path: HOGN-Windows-x64.zip
+          name: windows-${{ matrix.platform }}
+          path: HOGN-Windows-${{ matrix.platform }}.zip
 
   macos:
     runs-on: macos-14
@@ -62,7 +65,7 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: |
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" HOGN-Windows-x64.zip HOGN-macOS.zip --clobber
+            gh release upload "$TAG" HOGN-*.zip --clobber
           else
-            gh release create "$TAG" HOGN-Windows-x64.zip HOGN-macOS.zip --title "HOG $TAG" --generate-notes
+            gh release create "$TAG" HOGN-*.zip --title "HOG $TAG" --generate-notes
           fi

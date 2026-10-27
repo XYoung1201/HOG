@@ -91,6 +91,7 @@ Get the archive for your platform from [Releases](https://github.com/XYoung1201/
 | Platform | File | Install |
 |---|---|---|
 | Windows 10 / 11 (x64) | `HOGN-Windows-x64.zip` | Unzip and run `HOGN.exe` |
+| Windows 11 on Arm (ARM64, e.g. Windows in Parallels Desktop on a MacBook) | `HOGN-Windows-ARM64.zip` | Unzip and run `HOGN.exe` |
 | macOS 12+ (Apple silicon and Intel) | `HOGN-macOS.zip` | Unzip and drag `HOGN.app` into Applications |
 
 > Windows Defender may flag it and macOS may refuse to open it at first — see the [FAQ](#faq). The full source is in this repository.
@@ -245,7 +246,7 @@ HOG matches everything you type, so choose sequences that never appear in regula
 ### Windows
 
 1. Open `HOGN.sln` in **Visual Studio 2022** (toolset v143).
-2. Build `Release | x64` to get `HOGN.exe`. Only the Windows SDK and GDI+ are needed.
+2. Build `Release | x64` to get `HOGN.exe`, or `Release | ARM64` for Windows on Arm (needs the VS ARM64 build tools and ATL). Only the Windows SDK and GDI+ are needed.
 
 ### macOS
 
@@ -266,7 +267,7 @@ The app is signed with a requirement tied to its bundle id, so privacy permissio
 | [`HOGN/`](HOGN/) | Windows version: Win32 + GDI+, split into modules such as `Hooks`, `Command`, `ConfigTrie`, `Macro`, `Toast`, `Tray` |
 | [`macOS/src/`](macOS/src/) | macOS version: Objective-C++ with modules mirroring the Windows ones and the same hotkey trie |
 | [`HOGN/qrcodegen.*`](HOGN/qrcodegen.hpp) | QR code library shared by both versions |
-| [`.github/workflows/release.yml`](.github/workflows/release.yml) | Builds both platforms and uploads them to a Release when a `v*` tag is pushed |
+| [`.github/workflows/release.yml`](.github/workflows/release.yml) | Builds Windows x64 / ARM64 and macOS and uploads them to a Release when a `v*` tag is pushed |
 
 ## Feedback and Contributing
 
