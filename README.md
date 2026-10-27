@@ -29,8 +29,35 @@ HOG 是一个常驻后台的轻量工具，提供 Windows 与 macOS 两个原生
 
 **一份纯文本配置，两个平台通用。** 同样的 `CMD:`、`TEXT:`、`PATH:` 写法在 Windows 和 macOS 上都能识别，换电脑时只需要改掉与平台相关的路径。
 
+## 效果演示
+
+以下动图录制于 macOS 版，图中的字母序列均来自示例配置，可以随意改成自己顺手的。
+
+<table>
+  <tr>
+    <td width="50%"><b>剪贴板二维码</b> · <code>JFQR</code><br>复制网址后敲 <code>JFQR</code>，手机一扫就拿到<br><img src="docs/gif/01-qrcode.gif" alt="剪贴板二维码"></td>
+    <td width="50%"><b>自动输入常用文字</b> · <code>JFYX</code><br>邮箱、地址、固定回复，敲暗号自动填入<br><img src="docs/gif/03-text.gif" alt="自动输入文本"></td>
+  </tr>
+  <tr>
+    <td><b>打开文件夹和程序</b> · <code>JFXM</code> / <code>JFJSQ</code><br>藏在深层目录的文件夹、常用软件，一步打开<br><img src="docs/gif/02-open.gif" alt="打开文件夹与程序"></td>
+    <td><b>打开常用网页</b> · <code>JFGT</code><br>不翻书签、不输网址，直接跳转<br><img src="docs/gif/06-weblink.gif" alt="打开网页"></td>
+  </tr>
+  <tr>
+    <td><b>整理 PDF 复制的文字</b> · <code>JFCPDF</code><br>合并断行、压缩空格，粘贴就是完整段落<br><img src="docs/gif/04-pdf.gif" alt="整理 PDF 文本"></td>
+    <td><b>选中即搜</b> · <code>JFGS</code><br>复制一个词，敲暗号直接看 Google 搜索结果<br><img src="docs/gif/07-search.gif" alt="Google 搜索剪贴板内容"></td>
+  </tr>
+  <tr>
+    <td><b>一键关闭所有文件夹</b> · <code>JFCAD</code><br>访达 / 资源管理器窗口开了一屏，一次全关<br><img src="docs/gif/08-closeall.gif" alt="关闭所有文件夹窗口"></td>
+    <td><b>在当前文件夹打开终端</b> · <code>JFOCMD</code><br>终端直接定位到最前面的访达窗口所在目录（仅 macOS）<br><img src="docs/gif/09-terminal.gif" alt="在当前目录打开终端"></td>
+  </tr>
+  <tr>
+    <td colspan="2"><b>键鼠宏录制与回放</b> · <code>****</code> / <code>++++</code><br>连按 4 次左 ⌘ 开始 / 结束录制，剪贴板放入次数后连按 4 次右 ⌘ 回放（动图已加速 1.5 倍）<br><img src="docs/gif/05-macro.gif" alt="键鼠宏录制与回放" width="60%"></td>
+  </tr>
+</table>
+
 ## 目录
 
+- [效果演示](#效果演示)
 - [产品特性](#产品特性)
 - [适用场景](#适用场景)
 - [与同类工具对比](#与同类工具对比)
