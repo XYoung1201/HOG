@@ -5,3 +5,4 @@
 *.sdf
 *.ipch
 **/HOG/
+macOS/build/

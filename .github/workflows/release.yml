@@ -1,0 +1,68 @@
+# Builds HOGN for Windows and macOS on every pull request. Pushing a v* tag
+# also publishes both archives to the GitHub Release for that tag (created if
+# it doesn't exist).
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: microsoft/setup-msbuild@v2
+      - name: Build Release|x64
+        run: msbuild HOGN.sln /m /p:Configuration=Release /p:Platform=x64
+      - name: Package
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Recurse -Filter HOGN.exe | Where-Object { $_.FullName -match '\\x64\\Release\\' } | Select-Object -First 1
+          if (-not $exe) { throw "HOGN.exe not found" }
+          New-Item -ItemType Directory dist | Out-Null
+          Copy-Item $exe.FullName dist/HOGN.exe
+          Copy-Item HOG.example.conf dist/
+          Compress-Archive -Path dist/* -DestinationPath HOGN-Windows-x64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: HOGN-Windows-x64.zip
+
+  macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build universal HOGN.app
+        run: make -C macOS ARCHS="-arch arm64 -arch x86_64"
+      - name: Package
+        run: ditto -c -k --keepParent macOS/build/HOGN.app HOGN-macOS.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: HOGN-macOS.zip
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [windows, macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" HOGN-Windows-x64.zip HOGN-macOS.zip --clobber
+          else
+            gh release create "$TAG" HOGN-Windows-x64.zip HOGN-macOS.zip --title "HOG $TAG" --generate-notes
+          fi

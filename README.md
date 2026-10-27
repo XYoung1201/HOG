@@ -1,716 +1,275 @@
-# ⚙️ HOG (Hotkey Operated Gear)
+<p align="center"><img src="docs/icon.png" alt="HOG 图标" width="96"></p>
 
-> 一个以 **按键序列（Key Sequences）** 为核心交互模型的 Windows 全局热键工具。
-> A Windows global hotkey utility built around **key sequences** rather than traditional shortcut chords.
+<h1 align="center">HOG</h1>
 
-![Platform](https://img.shields.io/badge/platform-Windows-blue)
-![Language](https://img.shields.io/badge/language-C%2B%2B-00599C)
-![Win32 API](https://img.shields.io/badge/framework-Win32_API-2C5AA0)
-![Status](https://img.shields.io/badge/status-actively_usable-success)
+<p align="center"><b>Hotkey Operated Gear · 用字母序列驱动的后台快捷工具</b></p>
+<p align="center">随手敲几个字母，就能输入常用文本、打开程序与网址、控制系统，或回放一段键鼠宏。</p>
 
----
+<p align="center">
+  <b>简体中文</b> · <a href="README_EN.md">English</a>
+</p>
 
-## 中文介绍
+<p align="center">
+  <a href="https://github.com/XYoung1201/HOG/releases/latest"><b>下载</b></a> ·
+  <a href="#快速上手"><b>快速上手</b></a> ·
+  <a href="#配置说明"><b>配置说明</b></a> ·
+  <a href="https://github.com/XYoung1201/HOG/issues"><b>问题反馈</b></a>
+</p>
 
-### 1. 项目简介
+<p align="center">
+  <a href="https://github.com/XYoung1201/HOG/releases/latest"><img src="https://img.shields.io/github/v/release/XYoung1201/HOG?color=2563eb" alt="最新版本"></a>
+  <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows&logoColor=white" alt="Windows 10 / 11">
+  <img src="https://img.shields.io/badge/macOS-12%2B-000000?logo=apple&logoColor=white" alt="macOS 12+">
+  <img src="https://img.shields.io/badge/C%2B%2B-17%20%2F%2020-00599C?logo=cplusplus&logoColor=white" alt="C++17 / C++20">
+</p>
 
-**HOG（Hotkey Operated Gear）** 是一款面向 Windows 平台的轻量级全局热键工具，使用 **C++ + Win32 API** 原生开发。
-它最大的特点，不是去和传统快捷键工具竞争“谁能绑定更多 `Ctrl + Alt + Shift + X`”，而是直接换了一种更聪明、更少冲突、更符合肌肉记忆的交互方式：
+HOG 是一个常驻后台的轻量工具，提供 Windows 与 macOS 两个原生版本。它监听全局键盘输入，当你最近敲下的字母与配置文件里定义的序列（例如 `JFQR`、`JFCFG`）一致时，就执行对应动作：输入一段文本、打开文件或网址、启动程序、静音、定时关机、显示剪贴板二维码，或者回放一段录制好的键鼠宏。
 
-**HOG 使用“按键序列”触发动作。**
+它不弹主窗口，只在托盘（Windows）或菜单栏（macOS）放一个图标，用淡入淡出的提示条告诉你刚刚触发了什么。热键是字母序列而不是组合键，因此不会和系统或软件的快捷键抢位置。
 
-也就是说，你不需要同时按下一堆修饰键，只需要像输入 Vim 命令一样，依次按下例如：
+**一份纯文本配置，两个平台通用。** 同样的 `CMD:`、`TEXT:`、`PATH:` 写法在 Windows 和 macOS 上都能识别，换电脑时只需要改掉与平台相关的路径。
 
-* `J F Q R`
-* `J F N P`
-* `J F C F G`
+## 目录
 
-即可触发不同动作。
+- [产品特性](#产品特性)
+- [适用场景](#适用场景)
+- [与同类工具对比](#与同类工具对比)
+- [快速上手](#快速上手)
+- [配置说明](#配置说明)
+- [宏的录制与回放](#宏的录制与回放)
+- [托盘与菜单栏](#托盘与菜单栏)
+- [Windows 与 macOS 的差异](#windows-与-macos-的差异)
+- [常见问题](#常见问题)
+- [从源码构建](#从源码构建)
+- [反馈与贡献](#反馈与贡献)
 
-这让 HOG 在实际使用中呈现出非常鲜明的优势：
+## 产品特性
 
-* **冲突更少**：避开大量系统级与软件级组合键冲突。
-* **记忆更自然**：序列命名可以更语义化，更像“助记口令”。
-* **更适合高频工作流**：打开程序、打开目录、插入常用文本、执行系统命令，一套逻辑统一完成。
-* **无需脚本语言门槛**：核心能力通过配置文件即可完成，不必先学习一门自动化 DSL。
+| 特性 | 可以做什么 | 带来的价值 |
+|---|---|---|
+| 字母序列热键 | 用 `JF…` 这类日常不会连续敲出的字母组合触发动作，可加左右修饰键前缀 | 不占用组合键，记忆成本低，和任何软件都不冲突 |
+| 多种动作 | 输入文本、执行内置命令、打开文件 / 文件夹 / 程序 / 网址、以管理员身份运行、切换设置 | 一个入口覆盖日常的大部分重复操作 |
+| 自动清理触发字母 | 热键触发后自动退格删除刚刚敲下的字母，开着中文输入法也能删干净 | 在任何输入框里使用都不留痕迹 |
+| 键鼠宏 | 录制键盘、点击、移动与拖拽，按剪贴板里的数字重复回放，`P` 暂停、`Q` 停止 | 把机械的重复操作交给程序 |
+| 剪贴板工具 | 剪贴板文字生成二维码、整理从 PDF 复制的断行文本、用剪贴板内容搜索 Google | 手机扫码传文字、粘贴论文段落更顺手 |
+| 系统控制 | 切换静音、20 秒后关机 / 重启并可取消、关闭所有资源管理器 / Finder 窗口 | 不用找设置面板 |
+| 配置热重载 | 打开配置编辑后，保存即自动重新加载 | 改完立即生效，不必重启程序 |
+| 非阻塞提示 | 每次触发都在屏幕下方显示一条圆角提示，自动淡出 | 知道发生了什么，又不打断当前工作 |
 
-一句话概括：
+## 适用场景
 
-> **HOG 不是“又一个快捷键软件”，而是一种更偏工程化、更偏低冲突、更偏长期肌肉记忆的 Windows 操作增强方案。**
+| 使用需求 | 推荐做法 |
+|---|---|
+| 频繁输入邮箱、电话、地址等固定内容 | 为每条内容配一个 `TEXT:` 热键，例如 `*JFYX TEXT:you@example.com` |
+| 常用程序、文件夹、网站来回切换 | 用 `PATH:` 把它们挂到好记的字母序列上 |
+| 读论文时复制 PDF 段落 | 复制后触发 `CMD:COPYPDFTEXT`，再粘贴就是连贯的段落 |
+| 手机和电脑之间传一段文字或链接 | 复制后触发 `CMD:QRCODE`，用手机扫码 |
+| 重复的点击 / 填表操作 | `CMD:RECORD` 录一遍，剪贴板放入次数，`CMD:ACTION` 回放 |
 
----
+## 与同类工具对比
 
-### 2. 为什么 HOG 值得关注
+这张表用来说明 HOG 的定位，不是说它在所有方面都更强。
 
-在同类软件里，HOG 的辨识度非常高，因为它抓住了一个很少被做好的方向：
+| 维度 | HOG | AutoHotkey | PowerToys Keyboard Manager | FastKeys |
+|---|---|---|---|---|
+| 触发方式 | **字母序列** | 热键 + 热字符串 + 脚本 | 键位 / 快捷键重映射 | 快捷键、文本扩展、启动器、手势 |
+| 配置方式 | 纯文本，一行一条规则 | 需要学习脚本语法 | 图形界面 | 功能多，配置项也多 |
+| 快捷键冲突 | **天然很少** | 仍以组合键为主 | 传统快捷键体系 | 以传统快捷键为主 |
+| 自动化深度 | 中高，覆盖高频操作 | **最高**，几乎无限扩展 | 中低 | 高 |
+| 学习成本 | **低** | 中到高 | **最低** | 中等 |
+| 跨平台 | **Windows + macOS** | 仅 Windows | 仅 Windows | 仅 Windows |
+| 最适合 | 想要低冲突、好记、长期常驻的快捷层的人 | 需要复杂脚本自动化的人 | 只想简单改键的人 | 想要一体化效率套件的人 |
 
-#### 不是“更复杂”，而是“更顺手”
+需要无限的脚本能力选 AutoHotkey，只想改键选 PowerToys，想要大而全的套件选 FastKeys；想要一套**序列优先、不抢快捷键、配置简单、轻量常驻**的热键层，就是 HOG。
 
-很多自动化工具最终会走向两个极端：
+## 快速上手
 
-* 要么功能非常基础，只能改键、映射几个组合键；
-* 要么功能极强，但需要写大量脚本，维护成本高。
+### 1. 下载
 
-HOG 走的是第三条路线：
+在 [Releases](https://github.com/XYoung1201/HOG/releases/latest) 页面下载对应平台的压缩包：
 
-* 用 **原生 C++** 保持轻量；
-* 用 **配置文件驱动** 保持易用；
-* 用 **顺序按键模型** 解决传统热键的冲突和记忆问题；
-* 用 **内置命令 + 路径启动 + 文本输入 + 若干系统能力** 覆盖最常见的高频操作。
+| 平台 | 文件 | 安装 |
+|---|---|---|
+| Windows 10 / 11（x64） | `HOGN-Windows-x64.zip` | 解压后直接运行 `HOGN.exe` |
+| macOS 12 及以上（Apple 芯片与 Intel 通用） | `HOGN-macOS.zip` | 解压后把 `HOGN.app` 拖到「应用程序」 |
 
-这意味着：
+> Windows Defender 可能误报，macOS 可能提示「无法打开」，原因和处理方法见[常见问题](#常见问题)。程序源码完全公开。
 
-* 对普通用户来说，它比脚本型工具更容易上手；
-* 对重度用户来说，它比传统快捷键映射器更有“体系感”；
-* 对追求效率的人来说，它具备非常好的“日常常驻工具”气质。
+### 2. 首次运行
 
----
+**Windows**：启动后托盘出现 HOG 图标。程序会创建 `C:\ProgramData\HOG\`，询问是否使用默认配置文件，然后用默认编辑器打开它。
 
-### 3. 核心特性
+**macOS**：
 
-#### 3.1 按键序列触发，而不是传统组合键
+1. 打开 `HOGN.app`，菜单栏出现手形图标。程序会询问使用默认配置（`~/Library/Application Support/HOG/HOG.conf`），还是选择一个已有的配置文件。
+2. 在「系统设置 → 隐私与安全性」中，为 HOGN 打开 **辅助功能** 和 **输入监控** 两项权限。授权后约 2 秒，屏幕下方提示 `HOG is running`，无需重启。
 
-HOG 支持类似 `JFQR` 这样的序列式热键，而不是只依赖 `Ctrl + Shift + ...` 这类组合式按键。
+### 3. 试一个热键
 
-这类设计的价值非常直接：
+在任意输入框里依次敲 `J` `F` `Q` `R`：这几个字母会被自动删除，并弹出当前剪贴板文字的二维码。随后敲 `JFCFG` 打开配置文件，添加自己的热键，保存后自动生效。
 
-* 降低组合键冲突概率；
-* 避免多修饰键带来的手部负担；
-* 更容易构建一套“前缀一致、语义统一”的个人快捷系统；
-* 很适合喜欢 Vim 风格、命令感输入的用户。
+## 配置说明
 
-#### 3.2 纯文本配置，修改成本低
+配置文件是 UTF-8 纯文本，默认位置：
 
-所有规则通过配置文件定义，无需重新编译。
-首次运行后，程序会自动创建配置文件，例如：
+| 平台 | 配置文件 | 记录当前配置路径的文件 |
+|---|---|---|
+| Windows | `C:\ProgramData\HOG\HOG.conf` | `C:\ProgramData\HOG\config` |
+| macOS | `~/Library/Application Support/HOG/HOG.conf` | `~/Library/Application Support/HOG/config` |
 
-```txt
-C:\ProgramData\HOG\HOG.conf
+可以通过托盘 / 菜单栏的 **Change Config** 或 `CMD:CHANGECONF` 改用其他位置的配置文件。
+
+### 行格式
+
+```text
+<热键> <动作>
 ```
 
-你可以直接用任何文本编辑器维护规则，并通过热重载立即生效。
+- **热键**：一个或多个字母 `A`–`Z`（不区分大小写），前面可以加修饰键前缀：
 
-#### 3.3 支持多类动作
+  | 前缀 | Windows | macOS |
+  |---|---|---|
+  | `*` | 左 Ctrl | 左 ⌘ Command |
+  | `+` | 右 Ctrl | 右 ⌘ Command |
 
-HOG 并不只是“启动程序”，它至少覆盖了几类非常高频的动作类型：
+  修饰键是「先按一下再松开」，不是按住；按住修饰键时不会触发任何热键，因此不影响 ⌘C、Ctrl+V 之类的正常快捷键。
+- **动作**：见下方动作前缀。
+- 以 `//` 开头的行是注释，空行会被忽略。Windows 下保存的 CRLF 换行在 macOS 版里同样可以读取。
 
-* **PATH:** 打开程序、文件、文件夹、系统路径
-* **TEXT:** 快速输入预设文本
-* **CMD:** 调用内置命令
-* **SET:** 进行部分内置行为设置（如托盘图标显示状态）
-
-这让它既能当作启动器，也能当作短语输入器，还能当作轻量系统控制台。
-
-#### 3.4 托盘后台运行，适合长期常驻
-
-HOG 采用托盘常驻模式，提供右键菜单进行常用操作，例如：
-
-* Start / Stop Listening
-* Edit Config
-* Reload Config
-* Change Config
-* Show Clipboard QRcode
-* Close all Directories
-* Exit
-
-这使得 HOG 在“极简后台工具”和“可视可控工具”之间取得了很好的平衡。
-
-#### 3.5 即时热重载
-
-配置文件修改后，不需要重启程序。
-只要触发绑定到 `CMD:RELOAD` 的序列命令，即可重新加载配置。
-
-这种反馈链路非常适合频繁调参和迭代快捷工作流。
-
-#### 3.6 内置实用命令而非只做热键转发
-
-从当前仓库配置样例和代码实现来看，HOG 已经内置了一批非常实用的命令能力，例如：
-
-* 重载配置
-* 退出程序
-* 打开配置文件
-* 展示剪贴板文本二维码
-* 切换系统静音
-* 关闭所有资源管理器目录窗口
-* 计划关机 / 重启 / 取消关机重启
-* Google 搜索剪贴板内容
-* 切换程序监听开关
-* 打开当前路径命令行（配置默认项中可见）
-
-这说明 HOG 并不是“只负责监听按键，再把任务全交给外部脚本”，而是已经具备了相当完整的工具属性。
-
-#### 3.7 文本输入与自动化能力
-
-除了启动外部程序，HOG 还支持将预设文本快速写入当前输入位置，这对如下场景非常实用：
-
-* 邮箱地址 / 电话 / 地址快速输入
-* 常用回复语句
-* 代码模板 / 命令模板
-* 固定格式文本片段
-
-对于需要减少重复输入的用户，这一点非常有价值。
-
-#### 3.8 剪贴板二维码展示
-
-这是 HOG 很有特色的一项功能。
-它能够读取剪贴板文本，并直接生成二维码窗口显示。
-
-这个能力在以下场景非常方便：
-
-* 电脑向手机快速传递链接
-* 临时传输命令、配置串、验证码说明
-* 局域网调试时快速分享文本内容
-
-相比单纯“复制粘贴”，这种设计更像一个真正服务于工作流的辅助工具。
-
-#### 3.9 键盘 / 鼠标操作录制与回放（较新版本）
-
-根据当前仓库的发布说明，较新的版本已经增加：
-
-* `CMD:RECORD`：开始 / 停止录制
-* `CMD:ACTION`：回放已录制的操作
-
-这意味着 HOG 已经不再只是“热键 -> 动作”的静态映射工具，而开始具备轻量宏录制能力。
-这一步非常重要，因为它让项目从“快捷触发器”进一步走向“轻量自动化器”。
-
-> 注：发布说明中也明确指出，该功能当前仍有边界，例如暂不支持部分功能键记录，且录制期间不支持触发本程序快捷键。
-
-#### 3.10 环境变量路径展开
-
-从代码实现来看，HOG 会对路径中的环境变量进行展开，例如：
-
-```txt
-%USERPROFILE%
-%APPDATA%
+```text
+JFRLD CMD:RELOAD                     // 依次敲 J F R L D，重新加载配置
+*JFYX TEXT:you@example.com           // 先按一下左 Ctrl/⌘，再敲 J F Y X，输入邮箱
+JFGH  PATH:https://github.com        // 用默认浏览器打开网址
 ```
 
-这让配置的可移植性和泛化能力更强，也更适合编写长期维护的个人配置。
-
----
-
-### 4. 与主流同类软件对比
-
-下面这张表不是为了“贬低别的软件”，而是帮助更准确地理解 **HOG 的定位**。
-
-| 维度      | HOG                      | AutoHotkey     | PowerToys Keyboard Manager | FastKeys        |
-| ------- | ------------------------ | -------------- | -------------------------- | --------------- |
-| 核心触发模型  | **按键序列**（Sequence-first） | 热键 + 热字符串 + 脚本 | 键位/快捷键重映射                  | 快捷键、文本扩展、启动器、手势 |
-| 上手方式    | 纯文本配置，直接写规则              | 需要学习脚本语法       | GUI 为主，最易上手                | 功能丰富，配置面较大      |
-| 冲突控制    | **天然更少冲突**               | 仍以组合键体系为主      | 依赖传统快捷键体系                  | 主要还是传统快捷方式      |
-| 自动化深度   | 中高：足够覆盖高频工作流             | **最高**：几乎无限扩展  | 中低：以映射和基础快捷为主              | 高：面向成套自动化       |
-| 学习成本    | **低**                    | 中到高            | **最低**                     | 中等              |
-| 资源与心智负担 | **轻量、聚焦**                | 灵活但维护成本更高      | 易用但目标更通用                   | 功能广，但产品面更大      |
-| 最适合谁    | 想构建低冲突、高频、长期可记忆快捷系统的人    | 需要复杂自动化脚本的人    | 想快速改键/改快捷键的普通用户            | 想要一体化自动化套件的人    |
-
-#### 更直白一点地说
-
-* **如果你要的是“无限自动化能力”**：AutoHotkey 更强。
-* **如果你要的是“官方 GUI 改键工具”**：PowerToys 更直接。
-* **如果你要的是“功能大而全的一体化效率工具”**：FastKeys 很成熟。
-* **如果你要的是“低冲突、序列优先、配置简单、原生轻量、真正适合常驻”的热键系统**：**HOG 的产品辨识度非常高。**
-
-这正是 HOG 最难得的地方：
-
-> 它没有盲目追求“什么都做”，而是把“按键序列驱动的日常工作流”这件事做出了非常明确的风格。
-
----
-
-### 5. 适用场景
-
-HOG 非常适合以下用户：
-
-* 希望摆脱传统组合键冲突的人
-* 喜欢 Vim / 命令式操作逻辑的人
-* 想把常用程序、文件夹、脚本统一收敛到一套热键系统里的人
-* 需要高频输入固定文本的人
-* 想把 Windows 打造成“个人工作流操作台”的效率型用户
-* 希望用最小维护成本获得长期收益的人
-
-典型场景包括：
-
-* 开发者快速打开项目目录、命令行、编辑器
-* 办公用户快速输入固定格式文本和模板回复
-* 内容创作者快速启动剪辑、脑图、文档、下载器等工具
-* 技术用户通过序列键快速完成系统命令和管理动作
-
----
-
-### 6. 快速开始
-
-#### 6.1 直接运行
-
-前往仓库 Releases 页面，下载可执行文件并运行。
-
-程序启动后会进入系统托盘并开始监听。
-
-#### 6.2 首次配置
-
-首次运行后，默认配置文件通常位于：
-
-```txt
-C:\ProgramData\HOG\HOG.conf
-```
-
-你也可以通过界面或菜单选择其他配置路径。
-
-#### 6.3 修改规则
-
-使用任意文本编辑器打开配置文件，按如下格式编写：
-
-```txt
-[按键序列] [动作]
-```
-
-例如：
-
-```txt
-JFRLD CMD:RELOAD
-JFQT  CMD:QUIT
-JFQR  CMD:QRCODE
-JFTXT PATH:C:\Windows\System32\notepad.exe
-JFMAIL TEXT:your_email@example.com
-```
-
-#### 6.4 应用配置
-
-保存配置后，触发绑定到 `CMD:RELOAD` 的序列即可热重载。
-
----
-
-### 7. 配置语法说明
-
-#### 7.1 基本格式
-
-```txt
-[Key Sequence] [Action]
-```
-
-#### 7.2 序列示例
-
-```txt
-JFQR
-```
-
-表示依次按下：
-
-```txt
-J -> F -> Q -> R
-```
-
-#### 7.3 修饰键
-
-当前 README / 配置说明中可见：
-
-* `*` 表示左 Ctrl
-* `+` 表示右 Ctrl
-
-例如：
-
-```txt
-*JFYX TEXT:aaaa@gmail.com
-```
-
-#### 7.4 动作前缀
-
-* `CMD:` 内置命令
-* `PATH:` 程序 / 文件 / 文件夹 / Shell 路径
-* `TEXT:` 文本输入
-* `SET:` 内置设置项
-
----
-
-### 8. 配置示例
-
-下面给出一个更适合 README 展示的示例：
-
-```txt
-// ===== 基础控制 =====
-JFRLD CMD:RELOAD
-JFQT  CMD:QUIT
-JFCFG CMD:CONFIG
-JFHSW CMD:ONOFFHOGTOGGLE
-
-// ===== 系统工具 =====
-JFQR  CMD:QRCODE
-JFMTT CMD:MUTETOGGLE
-JFCAD CMD:CLOSEALLDIRECTORIES
-JFSCH CMD:GOOGLESEARCH
-
-// ===== 启动程序 / 打开目录 =====
-JFNP  PATH:notepad.exe
-JFTSK PATH:C:\Windows\System32\Taskmgr.exe
-JFHOG PATH:C:\ProgramData\HOG
-JFDOC PATH:%USERPROFILE%\Documents
-
-// ===== 常用文本 =====
-JFMAIL TEXT:your_email@example.com
-JFADDR TEXT:Shanghai, China
-JFGH   TEXT:https://github.com/XYoung1201/HOG
-
-// ===== 录制与回放（较新版本） =====
-JFRC CMD:RECORD
-JFFT CMD:ACTION
-```
-
-这个示例也体现了 HOG 的一个优势：
-
-> 规则本身就很像“个人操作系统词典”，结构清晰、语义清晰、迁移成本低。
-
----
-
-### 9. 项目结构
-
-```txt
-HOG/
-├─ HOGN/
-│  ├─ HOGN.cpp          # 主逻辑实现
-│  ├─ HOGN.h            # 头文件与全局定义
-│  ├─ qrcodegen.cpp     # 二维码生成实现
-│  ├─ qrcodegen.hpp     # 二维码生成头文件
-│  ├─ resource.h        # 资源定义
-│  ├─ HOGN.rc           # Win32 资源文件
-│  └─ *.ico             # 托盘图标资源
-├─ HOG.example.conf     # 配置示例
-├─ HOGN.sln             # Visual Studio 解决方案
-└─ README.md
-```
-
-从结构上可以看出，这个项目非常明确：
-
-* **目标单一**：围绕全局序列热键展开；
-* **依赖克制**：原生 Win32 + C++；
-* **功能分层清楚**：配置、托盘、二维码、动作执行等模块相对独立；
-* **适合继续扩展**：尤其适合继续增加动作类型、配置校验、导入导出、录制优化等能力。
-
----
-
-### 10. 构建说明
-
-建议使用：
-
-* **Visual Studio 2022**
-* Windows 桌面开发工具链
-
-基本步骤：
+### 动作前缀
+
+| 前缀 | 作用 | Windows | macOS |
+|---|---|---|---|
+| `TEXT:` | 输入一段文本 | 模拟按键逐字输入 | 经剪贴板粘贴后恢复原剪贴板，支持中文、emoji，开着拼音输入法也能用 |
+| `PATH:` | 打开目标 | `ShellExecute`：文件、文件夹、程序、网址、`SHELL:RecycleBinFolder` 等；展开 `%VAR%` | 文件、文件夹、`.app`、应用名（如 `PATH:Safari`）、网址；展开 `~`、`$VAR`、`%VAR%`；`.sh` / `.command` 脚本在「终端」中运行 |
+| `PATH_A:` | 以管理员身份打开 | `runas`，弹出 UAC | 输入密码后通过 `do shell script … with administrator privileges` 运行 |
+| `CMD:` | 执行内置命令 | 见下表 | 见下表 |
+| `SET:` | 切换设置 | `SET:TRAYICONENABLE:ON` / `OFF` 显示或隐藏图标 | 同左 |
+
+### 内置命令
+
+| 命令 | 作用 | macOS 上的实现 |
+|---|---|---|
+| `RELOAD` | 重新加载配置 | 同 Windows |
+| `CONFIG` | 用编辑器打开配置，保存后自动重载 | 用默认纯文本编辑器打开 |
+| `CHANGECONF` | 选择另一个配置文件并重载 | 同 Windows |
+| `QUIT` | 确认后退出 | 同 Windows |
+| `ONOFFHOGTOGGLE` | 暂停 / 恢复监听（暂停时依然可用） | 同 Windows |
+| `QRCODE` | 显示剪贴板文字的二维码 | 同 Windows，按 Esc 关闭 |
+| `MUTETOGGLE` | 切换系统静音 | 同 Windows |
+| `SHUTDOWN` / `REBOOT` | 20 秒后关机 / 重启 | 同样倒计时 20 秒 |
+| `CANCELSHUTDOWNORREBOOT` | 取消待执行的关机 / 重启 | 同 Windows |
+| `CLOSEALLDIRECTORIES` | 关闭所有资源管理器窗口 | 关闭所有 Finder 窗口 |
+| `CLOSETHISWINDOW` | 关闭当前前台窗口 | 发送 ⌘W |
+| `GOOGLESEARCH` | 用 Google 搜索剪贴板内容 | 同 Windows |
+| `COPYPDFTEXT` | 整理从 PDF 复制的文本（合并断行、保留句末换行、压缩空格） | 同 Windows |
+| `OPENCMDINCURRENTPATH` | 在当前目录打开命令行 | Windows 版暂未实现；macOS 在最前 Finder 窗口所在目录打开「终端」 |
+| `RECORD` | 开始 / 停止录制键鼠宏 | 同 Windows |
+| `ACTION` | 回放宏，剪贴板中的数字为重复次数（非数字则为 1） | 同 Windows |
+| `ACTIONSTOP` / `ACTIONPAUSE` / `ACTIONRESUME` / `ACTIONPAUSETOGGLE` | 停止 / 暂停 / 继续 / 切换暂停 | 同 Windows |
+
+完整的配置示例见 [`HOG.example.conf`](HOG.example.conf)（Windows 路径）。macOS 版首次运行生成的默认配置已经换成了 Mac 上的路径。
+
+## 宏的录制与回放
+
+1. 在配置中绑定两个热键：
+
+   ```text
+   JFMR CMD:RECORD     // 第一次触发开始录制，再次触发停止
+   JFMP CMD:ACTION     // 回放
+   ```
+
+2. 触发 `JFMR` 开始录制，正常操作键盘和鼠标。macOS 版还会记录 ⌘ ⌥ ⇧ 等修饰键和拖拽。
+3. 再次触发 `JFMR` 停止，用于停止录制的那几个字母会被自动去掉。
+4. 如需重复，在剪贴板里放一个数字（例如 `5`），再触发 `JFMP`。
+
+回放在独立线程中进行。回放期间按实体键 `P` 暂停 / 继续，按 `Q` 停止；HOG 自己发出的按键会被过滤，宏不会把自己停掉。录制时不能回放，回放时也不能录制。
+
+## 托盘与菜单栏
+
+| 菜单项 | 作用 |
+|---|---|
+| Stop / Start Listening | 暂停或恢复监听，暂停时图标变灰 |
+| Edit Config | 打开配置并开启自动重载 |
+| Reload Config | 立即重新加载配置 |
+| Change Config | 选择其他配置文件 |
+| Show Clipboard QRcode | 同 `CMD:QRCODE` |
+| Close all Directories | 同 `CMD:CLOSEALLDIRECTORIES` |
+| Exit | 确认后退出 |
+
+Windows 托盘图标右键打开菜单，左键打开配置文件；macOS 点击菜单栏图标打开菜单。
+
+## Windows 与 macOS 的差异
+
+| 项目 | Windows | macOS |
+|---|---|---|
+| 图标位置 | 系统托盘 | 菜单栏 |
+| `*` / `+` | 左 / 右 Ctrl | 左 / 右 ⌘ Command |
+| 键盘监听 | `WH_KEYBOARD_LL` / `WH_MOUSE_LL` 低级钩子 | `CGEventTap`，需要辅助功能与输入监控权限 |
+| `TEXT:` 输入方式 | 模拟按键 | 剪贴板粘贴并恢复 |
+| 不删除触发字母的窗口 | 资源管理器 | Finder |
+| 单实例保护 | 全局互斥量 | 配置目录下的文件锁 |
+
+## 常见问题
+
+**Windows Defender 报毒？**
+HOG 需要全局键盘钩子和模拟按键，这类行为容易被误判。程序源码完全公开，可以在 Defender 中允许该文件，或者自行编译。
+
+**macOS 提示「无法打开」或「已损坏」？**
+发布包没有经过 Apple 公证。在「终端」中执行一次下面的命令即可：
 
 ```bash
-git clone https://github.com/XYoung1201/HOG.git
+xattr -dr com.apple.quarantine /Applications/HOGN.app
 ```
 
-然后：
+**macOS 上热键没有反应？**
+确认「系统设置 → 隐私与安全性」的 **辅助功能** 与 **输入监控** 中 HOGN 都已打开。如果开关是开的但仍无效（例如替换了新版本），先用 − 删除 HOGN 条目，再用 + 重新添加 `/Applications/HOGN.app`。
 
-1. 使用 Visual Studio 打开 `HOGN.sln`
-2. 选择 `Release` 配置
-3. 编译生成可执行文件
+**开着中文输入法时，触发字母没有删干净？**
+请使用 3.1 及以上版本。HOG 会等目标窗口和输入法处理完退格之后再执行动作。
 
----
+**第一次使用某些命令时弹出「想要控制 Finder / System Events」？**
+这是 macOS 对自动化操作的确认，`CLOSEALLDIRECTORIES`、`OPENCMDINCURRENTPATH`、`MUTETOGGLE`、`SHUTDOWN` 等命令需要它，允许一次即可。
 
-### 11. HOG 的优秀之处，浓缩成一句话
+**热键和正常打字冲突？**
+HOG 会匹配你敲下的所有字母，所以请选日常不会连续出现的序列，例如统一以 `JF` 开头。两个字母之间间隔超过 1 秒会重新开始匹配。
 
-如果只用一句话评价这个项目，我会这样描述：
+## 从源码构建
 
-> **HOG 不是功能最花哨的热键工具，但它很可能是“按键序列驱动效率工作流”这个方向里，最有产品气质、最有辨识度、也最值得长期打磨的一类实现。**
+### Windows
 
-它优秀的地方不只在于“能做什么”，还在于它对交互模型做出了清晰选择：
+1. 用 **Visual Studio 2022**（工具集 v143）打开 `HOGN.sln`。
+2. 选择 `Release | x64` 生成，得到 `HOGN.exe`。只依赖 Windows SDK 和 GDI+。
 
-* 不依赖复杂脚本才能用；
-* 不被传统组合键束缚；
-* 不追求臃肿；
-* 而是把 **低冲突、强记忆、可配置、可常驻** 这几件真正影响日常体验的事情做扎实。
+### macOS
 
-这正是一个实用主义项目最有价值的地方。
+只需要 Xcode 命令行工具（`xcode-select --install`），不需要完整的 Xcode：
 
----
-
-## English Introduction
-
-### 1. Overview
-
-**HOG (Hotkey Operated Gear)** is a lightweight Windows global hotkey utility built with **C++ and the Win32 API**.
-
-What makes HOG stand out is not simply that it can launch apps or paste text. Its real innovation lies in its **interaction model**:
-
-> **HOG uses key sequences instead of traditional shortcut chords.**
-
-Instead of pressing combinations like `Ctrl + Alt + Shift + X`, you define and trigger actions through sequential input, such as:
-
-* `J F Q R`
-* `J F N P`
-* `J F C F G`
-
-This gives HOG a very distinct identity among Windows productivity tools:
-
-* fewer shortcut conflicts,
-* better mnemonic design,
-* lower finger strain,
-* and a workflow that feels closer to a command language than a pile of remapped keys.
-
-In short:
-
-> **HOG is not just another hotkey tool. It is a sequence-first workflow layer for Windows.**
-
----
-
-### 2. Why HOG is interesting
-
-Most tools in this category fall into one of two buckets:
-
-1. **Very simple remappers** that only support basic key or shortcut reassignment.
-2. **Very powerful automation platforms** that require users to learn and maintain scripts.
-
-HOG takes a compelling middle path:
-
-* **native C++ implementation** for a lightweight runtime,
-* **configuration-file driven behavior** for easy maintenance,
-* **sequence-based triggering** for low-conflict operation,
-* **built-in commands + path launching + text insertion** for real daily usability.
-
-That makes HOG attractive to a surprisingly broad audience:
-
-* casual users who want more than basic remapping,
-* power users who do not want to maintain large automation scripts,
-* and workflow-focused users who want a personal command layer on top of Windows.
-
----
-
-### 3. Core Features
-
-#### 3.1 Sequence-based hotkeys
-
-This is HOG’s defining feature.
-
-Instead of relying only on chorded shortcuts, HOG supports sequence-style triggers such as:
-
-```txt
-JFQR
+```bash
+cd macOS
+make install      # 生成 build/HOGN.app 并复制到 /Applications
+make run          # 或者直接从 build 目录运行
 ```
 
-which means pressing:
+程序使用与 bundle id 绑定的签名要求，重新编译后已授予的权限依然有效。
 
-```txt
-J -> F -> Q -> R
-```
+### 工程结构
 
-This design is valuable because it:
+| 路径 | 内容 |
+|---|---|
+| [`HOGN/`](HOGN/) | Windows 版：Win32 + GDI+，按功能拆分为 `Hooks`、`Command`、`ConfigTrie`、`Macro`、`Toast`、`Tray` 等模块 |
+| [`macOS/src/`](macOS/src/) | macOS 版：Objective-C++，模块与 Windows 版一一对应，热键前缀树逻辑相同 |
+| [`HOGN/qrcodegen.*`](HOGN/qrcodegen.hpp) | 两个版本共用的二维码库 |
+| [`.github/workflows/release.yml`](.github/workflows/release.yml) | 推送 `v*` 标签时自动编译两个平台并上传到 Release |
 
-* reduces collision with existing application shortcuts,
-* avoids excessive modifier-key usage,
-* enables mnemonic naming conventions,
-* and supports a more command-oriented workflow.
+## 反馈与贡献
 
-#### 3.2 Plain-text configuration
+遇到问题或有新功能想法，欢迎在 [Issues](https://github.com/XYoung1201/HOG/issues) 中提出，也欢迎提交 Pull Request。
 
-HOG is highly practical because its behavior is defined in a simple configuration file rather than in compiled code.
-
-On first run, the configuration is typically created at:
-
-```txt
-C:\ProgramData\HOG\HOG.conf
-```
-
-This makes HOG easy to inspect, edit, back up, and iterate on.
-
-#### 3.3 Multiple action types
-
-HOG supports several useful action categories:
-
-* `PATH:` launch a program, file, folder, or shell path
-* `TEXT:` insert predefined text
-* `CMD:` execute built-in commands
-* `SET:` apply certain built-in settings
-
-That means HOG is not just a launcher. It is also a text utility, a quick system controller, and a lightweight workflow trigger engine.
-
-#### 3.4 Tray-based background runtime
-
-HOG runs quietly in the system tray and exposes convenient controls, including:
-
-* Start / Stop Listening
-* Edit Config
-* Reload Config
-* Change Config
-* Show Clipboard QRcode
-* Close all Directories
-* Exit
-
-This is a great balance between being silent and being controllable.
-
-#### 3.5 Instant hot reload
-
-You can edit the configuration file and reload it immediately via `CMD:RELOAD`, without restarting the app.
-
-That fast feedback loop is one of the reasons HOG feels practical instead of cumbersome.
-
-#### 3.6 Useful built-in commands
-
-Based on the current repository, config examples, and release notes, HOG includes built-in commands for tasks such as:
-
-* reload config
-* quit the application
-* open the configuration file
-* show clipboard text as a QR code
-* toggle system mute
-* close all Explorer directory windows
-* scheduled shutdown / reboot / cancel shutdown
-* Google search clipboard content
-* toggle listening state
-* command-related helper actions in configuration defaults
-
-This gives HOG real utility even before users start integrating external scripts.
-
-#### 3.7 Text insertion
-
-Text insertion support makes HOG immediately useful for:
-
-* email addresses,
-* fixed replies,
-* templates,
-* repetitive commands,
-* structured phrases,
-* and personal snippets.
-
-This is one of the easiest ways to turn HOG into a daily productivity gain.
-
-#### 3.8 Clipboard QR code display
-
-This is one of HOG’s most distinctive built-in features.
-
-It can read clipboard text and render it as a QR code window, which is very practical for:
-
-* sending links from PC to phone,
-* sharing temporary commands,
-* transferring configuration strings,
-* or quickly exposing machine-generated text to another device.
-
-#### 3.9 Keyboard/mouse recording and playback
-
-According to the latest release notes, newer versions add:
-
-* `CMD:RECORD` to start/stop recording
-* `CMD:ACTION` to replay recorded operations
-
-This is a major step because it pushes HOG beyond static hotkey mapping and into **lightweight macro automation**.
-
-> Note: the release notes also mention current limitations, such as incomplete support for some function-key recording scenarios.
-
-#### 3.10 Environment-variable-aware paths
-
-HOG expands Windows environment variables in paths, such as:
-
-```txt
-%USERPROFILE%
-%APPDATA%
-```
-
-This improves portability and makes configuration cleaner and easier to maintain.
-
----
-
-### 4. Comparison with mainstream tools
-
-The goal of this comparison is not to say that HOG is “better at everything”. It is to show where HOG fits.
-
-| Dimension                 | HOG                                                     | AutoHotkey                                   | PowerToys Keyboard Manager         | FastKeys                                         |
-| ------------------------- | ------------------------------------------------------- | -------------------------------------------- | ---------------------------------- | ------------------------------------------------ |
-| Trigger model             | **Key sequences**                                       | Hotkeys + hotstrings + scripting             | Key/shortcut remapping             | Shortcuts + text expansion + launcher + gestures |
-| Setup style               | Plain-text config                                       | Script-driven                                | GUI-driven                         | Feature-rich configuration                       |
-| Shortcut conflict profile | **Naturally low-conflict**                              | Still mostly shortcut/chord-oriented         | Traditional shortcut model         | Mostly traditional shortcut model                |
-| Automation depth          | Medium to high                                          | **Very high**                                | Low to medium                      | High                                             |
-| Learning curve            | **Low**                                                 | Medium to high                               | **Lowest**                         | Medium                                           |
-| Product style             | Focused, lightweight, sequence-first                    | Extremely flexible, script-centric           | Official, simple, general-purpose  | Broad all-in-one productivity suite              |
-| Best for                  | Users who want a memorable, low-conflict workflow layer | Users who need advanced scripting automation | Users who just want easy remapping | Users who want an integrated automation toolbox  |
-
-#### A practical reading of this comparison
-
-* Choose **AutoHotkey** if you need maximum scripting power.
-* Choose **PowerToys Keyboard Manager** if you want a simple official remapping UI.
-* Choose **FastKeys** if you want a broad all-in-one productivity suite.
-* Choose **HOG** if you want a **sequence-first, conflict-resistant, highly usable hotkey layer** with a very clear product identity.
-
-That identity is HOG’s greatest strength.
-
----
-
-### 5. Typical Use Cases
-
-HOG is especially good for users who:
-
-* are tired of shortcut conflicts,
-* like Vim-style command logic,
-* want a unified launcher/text/snippet/system-control layer,
-* need repetitive text insertion,
-* prefer native tools over script-heavy setups,
-* and want long-term productivity gains from a small utility.
-
-Example scenarios:
-
-* opening project folders, terminals, editors, and docs with sequences,
-* inserting repeated professional phrases,
-* launching work apps with semantic command-like triggers,
-* controlling system tasks from the keyboard without memorizing dozens of chorded shortcuts.
-
----
-
-### 6. Quick Start
-
-#### 6.1 Run the app
-
-Download the executable from the Releases page and launch it.
-
-HOG will start listening in the background and appear in the system tray.
-
-#### 6.2 Edit the config
-
-The default configuration is typically located at:
-
-```txt
-C:\ProgramData\HOG\HOG.conf
-```
-
-Open it in any text editor and define your rules.
-
-#### 6.3 Example
-
-```txt
-JFRLD CMD:RELOAD
-JFQT  CMD:QUIT
-JFQR  CMD:QRCODE
-JFNP  PATH:notepad.exe
-JFMAIL TEXT:your_email@example.com
-```
-
-#### 6.4 Apply changes
-
-Save the file and trigger the sequence bound to `CMD:RELOAD`.
-
----
-
-### 7. Configuration Syntax
-
-#### Basic format
-
-```txt
-[Key Sequence] [Action]
-```
-
-#### Modifier hints
-
-Current documentation/config examples indicate:
-
-* `*` = Left Ctrl
-* `+` = Right Ctrl
-
-#### Action prefixes
-
-* `CMD:` built-in commands
-* `PATH:` paths / executables / folders
-* `TEXT:` text insertion
-* `SET:` built-in settings
-
----
-
-### 8. Example Configuration
-
-```txt
-// ===== Cor
-```
+[![Star History Chart](https://api.star-history.com/svg?repos=XYoung1201/HOG&type=Timeline)](https://star-history.com/#XYoung1201/HOG&Timeline)
