@@ -76,10 +76,10 @@ void RenderToast(HWND hwnd, BYTE alpha) {
 		REAL h = (REAL)TOAST_HEIGHT;
 
 		GraphicsPath path;
-		path.AddArc(0,             0,             radius * 2, radius * 2, 180, 90);
-		path.AddArc(w - radius*2,  0,             radius * 2, radius * 2, 270, 90);
-		path.AddArc(w - radius*2,  h - radius*2,  radius * 2, radius * 2,   0, 90);
-		path.AddArc(0,             h - radius*2,  radius * 2, radius * 2,  90, 90);
+		path.AddArc(0.0f,             0.0f,             radius * 2, radius * 2, 180.0f, 90);
+		path.AddArc(w - radius*2,  0.0f,             radius * 2, radius * 2, 270, 90);
+		path.AddArc(w - radius*2,  h - radius*2,  radius * 2, radius * 2,   0.0f, 90);
+		path.AddArc(0.0f,             h - radius*2,  radius * 2, radius * 2,  90, 90);
 		path.CloseFigure();
 
 		SolidBrush bgBrush(Color(alpha, 28, 28, 32));

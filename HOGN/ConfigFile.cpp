@@ -1,10 +1,11 @@
 #include "ConfigFile.h"
 #include "Globals.h"
+#include <windows.h>
 
 bool AskToUseDefaultPath() {
 	int result = MessageBox(NULL,
-		TEXT("使用默认配置文件？"),
-		TEXT("保存配置"),
+		"use the defaule config file?",
+		"save config",
 		MB_YESNO | MB_ICONQUESTION);
 	return result == IDYES;
 }
