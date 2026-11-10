@@ -12,3 +12,4 @@ void DrawTextWithLineSpacing(HDC hdc, const TCHAR* text, int count, RECT* rect, 
 // True if the foreground window is a File-Explorer window. Used to suppress
 // trie-backspace behaviour in those windows.
 bool isActiveWindowExplorer();
+bool isActiveAppDisabled();

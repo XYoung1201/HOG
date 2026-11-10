@@ -69,12 +69,27 @@ void readPara() {
 	o = NULL;
 	o = new struct letter(o);
 	mark = o;
+	g_disabledApps.clear();
 	std::ifstream in(config_path);
 	std::string line;
 	do {
 		getline(in, line);
 		if ((line[0] == '/' && line[1] == '/') || line == "")
 			continue;
+		// "DISABLE APP:<exe name or window class>" -> never trigger in that app.
+		if (line.compare(0, 8, "DISABLE ") == 0) {
+			std::string rule = line.substr(8);
+			size_t b = rule.find_first_not_of(" \t");
+			rule = b == std::string::npos ? "" : rule.substr(b);
+			if (rule.compare(0, 4, "APP:") == 0) {
+				std::string target = rule.substr(4);
+				while (!target.empty() && (target.back() == ' ' || target.back() == '\t' || target.back() == '\r'))
+					target.pop_back();
+				if (!target.empty())
+					g_disabledApps.push_back(target);
+			}
+			continue;
+		}
 		commandLoad(line);
 	} while (!in.eof());
 	in.close();

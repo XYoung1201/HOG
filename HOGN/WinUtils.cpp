@@ -74,3 +74,50 @@ bool isActiveWindowExplorer() {
 	std::string wClassName(className);
 	return wClassName == "CabinetWClass" || wClassName == "ExploreWClass";
 }
+
+// True when the foreground window matches a "DISABLE APP:" rule. A rule
+// matches the process exe name (e.g. Photoshop.exe) or the window class,
+// case-insensitively; a trailing `*` makes it a prefix match.
+bool isActiveAppDisabled() {
+	if (g_disabledApps.empty())
+		return false;
+	HWND hwnd = GetForegroundWindow();
+	if (!hwnd)
+		return false;
+
+	std::string exe, cls;
+	char className[256] = { 0 };
+	GetClassNameA(hwnd, className, 256);
+	cls = className;
+	DWORD pid = 0;
+	GetWindowThreadProcessId(hwnd, &pid);
+	if (HANDLE h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid)) {
+		char path[MAX_PATH] = { 0 };
+		DWORD len = MAX_PATH;
+		if (QueryFullProcessImageNameA(h, 0, path, &len)) {
+			exe = path;
+			size_t slash = exe.find_last_of("\\/");
+			if (slash != std::string::npos)
+				exe = exe.substr(slash + 1);
+		}
+		CloseHandle(h);
+	}
+
+	auto lower = [](std::string s) {
+		for (char& c : s) c = (char)tolower((unsigned char)c);
+		return s;
+	};
+	exe = lower(exe);
+	cls = lower(cls);
+	for (const std::string& raw : g_disabledApps) {
+		std::string rule = lower(raw);
+		bool prefix = rule.back() == '*';
+		if (prefix) rule.pop_back();
+		if (rule.empty()) continue;
+		for (const std::string* name : { &exe, &cls }) {
+			if (prefix ? name->compare(0, rule.size(), rule) == 0 : *name == rule)
+				return true;
+		}
+	}
+	return false;
+}

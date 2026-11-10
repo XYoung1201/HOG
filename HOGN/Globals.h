@@ -23,6 +23,9 @@ extern high_resolution_clock::time_point lastTime;
 extern HHOOK myhook;
 extern HHOOK mouseHook;
 
+// --- Per-app disable list (config lines "DISABLE APP:<exe name or window class>") ---
+extern std::vector<std::string> g_disabledApps;
+
 // --- Tray state ---
 extern NOTIFYICONDATA nid;
 extern bool trayIconVisible;

@@ -21,6 +21,8 @@ NOTIFYICONDATA nid = {};
 bool trayIconVisible = false;
 HWND g_mainHwnd = nullptr;
 
+std::vector<std::string> g_disabledApps;
+
 bool listening = false;
 bool action_listening = false;
 std::atomic<bool> action_doing(false);
@@ -50,4 +52,5 @@ const std::string config_text =
 "JFCLRB CMD:CANCELSHUTDOWNORREBOOT\n"
 "JFOCMD CMD:OPENCMDINCURRENTPATH\n"
 "JFOSWT CMD:ONOFFHOGTOGGLE\n"
+"//DISABLE APP:prl_client_app.exe\n"
 "*JFYX TEXT:aaaa@gmail.com";
