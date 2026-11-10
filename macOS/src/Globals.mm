@@ -13,6 +13,8 @@ int char_down = 0;
 high_resolution_clock::time_point lastTime;
 int g_lastTriggerLength = 0;
 
+std::vector<std::string> g_disabledApps;
+
 bool trayIconVisible = false;
 
 bool listening = false;
@@ -59,6 +61,9 @@ const std::string config_text =
 "JFTXT PATH:/System/Applications/TextEdit.app\n"
 "JFTRM PATH:/System/Applications/Utilities/Terminal.app\n"
 "JFAM PATH:/System/Applications/Utilities/Activity Monitor.app\n"
+"\n"
+"//Disable HOGN inside an app (bundle id or name; trailing * = prefix)\n"
+"//DISABLE APP:com.parallels.desktop.console\n"
 "\n"
 "//Links\n"
 "JFGH PATH:https://github.com\n"

@@ -46,7 +46,35 @@ bool isActiveWindowFinder() {
 	return [app.bundleIdentifier isEqualToString:@"com.apple.finder"];
 }
 
+// True when the frontmost app matches a "DISABLE APP:" rule. A rule matches
+// the bundle id or the display name, case-insensitively; a trailing `*`
+// makes it a prefix match (e.g. com.parallels.*).
+bool isActiveAppDisabled() {
+	if (g_disabledApps.empty())
+		return false;
+	NSRunningApplication* app = NSWorkspace.sharedWorkspace.frontmostApplication;
+	if (!app)
+		return false;
+	for (const std::string& rule : g_disabledApps) {
+		bool prefix = rule.back() == '*';
+		NSString* r = [NSString stringWithUTF8String:(prefix ? rule.substr(0, rule.size() - 1) : rule).c_str()];
+		if (!r.length)
+			continue;
+		for (NSString* name in @[app.bundleIdentifier ?: @"", app.localizedName ?: @""]) {
+			if (prefix ? [name rangeOfString:r options:NSAnchoredSearch | NSCaseInsensitiveSearch].location != NSNotFound
+			           : [name caseInsensitiveCompare:r] == NSOrderedSame)
+				return true;
+		}
+	}
+	return false;
+}
+
 void handleKey(int vk, bool down, bool injected) {
+	if (isActiveAppDisabled()) {
+		keyStateChange(vk, down);
+		mark = o;
+		return;
+	}
 	auto thisTime = high_resolution_clock::now();
 	int interval_ms = (int)std::chrono::duration_cast<milliseconds>(thisTime - lastTime).count();
 

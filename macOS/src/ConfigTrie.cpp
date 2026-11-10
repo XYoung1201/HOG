@@ -71,6 +71,7 @@ void readPara() {
 	o = NULL;
 	o = new struct letter(o);
 	mark = o;
+	g_disabledApps.clear();
 	std::ifstream in(config_path);
 	std::string line;
 	do {
@@ -80,6 +81,18 @@ void readPara() {
 			line.pop_back();
 		if ((line[0] == '/' && line[1] == '/') || line == "")
 			continue;
+		// "DISABLE APP:<bundle id or name>" -> never trigger in that app.
+		if (hasPrefix(line, "DISABLE ")) {
+			std::string rule = line.substr(8);
+			size_t b = rule.find_first_not_of(" \t");
+			rule = b == std::string::npos ? "" : rule.substr(b);
+			std::string target = extractContent(rule, "APP:");
+			while (!target.empty() && (target.back() == ' ' || target.back() == '\t'))
+				target.pop_back();
+			if (!target.empty())
+				g_disabledApps.push_back(target);
+			continue;
+		}
 		commandLoad(line);
 	} while (!in.eof());
 	in.close();

@@ -16,6 +16,15 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
 	bool injected = (press->flags & LLKHF_INJECTED) != 0;
 	int state = 0;
 
+	// Per-app disable ("DISABLE APP:" in the config): swallow nothing, just
+	// don't walk the trie while a disabled app is in front.
+	if (isActiveAppDisabled()) {
+		bool down = (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN);
+		keyStateChange(press->vkCode, down);
+		mark = o;
+		return CallNextHookEx(myhook, nCode, wParam, lParam);
+	}
+
 	if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
 		state = 0;
 		lastTime = thisTime;

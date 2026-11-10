@@ -20,6 +20,9 @@ extern int char_down;
 extern high_resolution_clock::time_point lastTime;
 extern int g_lastTriggerLength;   // letter count of the hotkey that triggered the running action
 
+// --- Per-app disable list (config lines "DISABLE APP:<bundle id or name>") ---
+extern std::vector<std::string> g_disabledApps;
+
 // --- Tray state ---
 extern bool trayIconVisible;
 

@@ -189,6 +189,8 @@ JFGH  PATH:https://github.com        // 用默认浏览器打开网址
 | `CHANGECONF` | 选择另一个配置文件并重载 | 同 Windows |
 | `QUIT` | 确认后退出 | 同 Windows |
 | `ONOFFHOGTOGGLE` | 暂停 / 恢复监听（暂停时依然可用） | 同 Windows |
+
+> **按应用禁用**：配置文件中加一行 `DISABLE APP:<Bundle ID 或应用名>`，该应用在前台时 HOGN 不响应任何热键，例如 `DISABLE APP:com.parallels.desktop.console`、`DISABLE APP:Parallels Desktop`；末尾加 `*` 表示前缀匹配（`DISABLE APP:com.parallels.*`）。可写多行，重载配置后生效。Windows 下写进程名或窗口类名，如 `DISABLE APP:prl_client_app.exe`。
 | `QRCODE` | 显示剪贴板文字的二维码 | 同 Windows，按 Esc 关闭 |
 | `MUTETOGGLE` | 切换系统静音 | 同 Windows |
 | `SHUTDOWN` / `REBOOT` | 20 秒后关机 / 重启 | 同样倒计时 20 秒 |

@@ -189,6 +189,8 @@ JFGH  PATH:https://github.com        // open a URL in the default browser
 | `CHANGECONF` | Pick another config file and reload | Same |
 | `QUIT` | Confirm and exit | Same |
 | `ONOFFHOGTOGGLE` | Pause / resume listening (works while paused) | Same |
+
+> **Per-app disable**: add a line `DISABLE APP:<bundle id or app name>` to the config and HOGN ignores all hotkeys while that app is frontmost, e.g. `DISABLE APP:com.parallels.desktop.console`. A trailing `*` makes it a prefix match (`DISABLE APP:com.parallels.*`). On Windows use the process or window-class name, e.g. `DISABLE APP:prl_client_app.exe`. Multiple lines allowed; takes effect after reloading the config.
 | `QRCODE` | Show the clipboard text as a QR code | Same; Esc closes it |
 | `MUTETOGGLE` | Toggle system mute | Same |
 | `SHUTDOWN` / `REBOOT` | Shut down / reboot in 20 s | Same 20 s countdown |
